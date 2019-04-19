@@ -1,5 +1,4 @@
 import Foundation
-import XCTest
 
 /// The ability to compare `Value`s and convert them to and from `Data`.
 public struct Diffing<Value> {
@@ -10,7 +9,7 @@ public struct Diffing<Value> {
   public var fromData: (Data) -> Value
 
   /// Compares two values. If the values do not match, returns a failure message and artifacts describing the failure.
-  public var diff: (Value, Value) -> (String, [XCTAttachment])?
+  public var diff: (Value, Value) -> (String, [SnapshotArtifact])?
 
   /// Creates a new `Diffing` on `Value`.
   ///
@@ -25,10 +24,27 @@ public struct Diffing<Value> {
   public init(
     toData: @escaping (_ value: Value) -> Data,
     fromData: @escaping (_ data: Data) -> Value,
-    diff: @escaping (_ lhs: Value, _ rhs: Value) -> (String, [XCTAttachment])?
+    diff: @escaping (_ lhs: Value, _ rhs: Value) -> (String, [SnapshotArtifact])?
     ) {
     self.toData = toData
     self.fromData = fromData
     self.diff = diff
   }
+}
+
+/// A represenation of an artifact to be stored as an `XCTAttachment` or to disk.
+public struct SnapshotArtifact {
+  /// A description of the artifact.
+  public enum ArtifactType: String {
+    case reference, failure, difference
+  }
+    
+  /// The payload data to be stored.
+  public var data: Data
+  
+  /// The type of artifact to be stored.
+  public var artifactType: ArtifactType
+  
+  /// A uniform type identifier of the payload data.
+  public var uniformTypeIdentifier: String?
 }

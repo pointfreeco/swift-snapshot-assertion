@@ -98,7 +98,7 @@ public func _verifyInlineSnapshot<Value>(
       let trimmedReference = reference.trimmingCharacters(in: .whitespacesAndNewlines)
 
       // Always perform diff, and return early on success!
-      guard let (failure, attachments) = snapshotting.diffing.diff(trimmedReference, diffable) else {
+      guard let (failure, artifacts) = snapshotting.diffing.diff(trimmedReference, diffable) else {
         return nil
       }
 
@@ -139,12 +139,17 @@ public func _verifyInlineSnapshot<Value>(
       }
 
       /// Did not successfully record, so we will fail.
-      if !attachments.isEmpty {
+      if !artifacts.isEmpty {
         #if !os(Linux)
         if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
           XCTContext.runActivity(named: "Attached Failure Diff") { activity in
-            attachments.forEach {
-              activity.add($0)
+            artifacts.forEach {
+              let attachment = XCTAttachment(
+                uniformTypeIdentifier: $0.uniformTypeIdentifier,
+                name: $0.artifactType.rawValue,
+                payload: $0.data
+              )
+              activity.add(attachment)
             }
           }
         }

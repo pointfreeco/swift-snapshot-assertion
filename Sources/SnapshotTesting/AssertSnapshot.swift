@@ -245,38 +245,54 @@ public func verifySnapshot<Value, Format>(
       let data = try Data(contentsOf: snapshotFileUrl)
       let reference = snapshotting.diffing.fromData(data)
 
-      guard let (failure, attachments) = snapshotting.diffing.diff(reference, diffable) else {
+      guard let (failure, artifacts) = snapshotting.diffing.diff(reference, diffable) else {
         return nil
       }
 
-      let artifactsUrl = URL(
-        fileURLWithPath: ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"] ?? NSTemporaryDirectory(), isDirectory: true
-      )
-      let artifactsSubUrl = artifactsUrl.appendingPathComponent(fileName)
-      try fileManager.createDirectory(at: artifactsSubUrl, withIntermediateDirectories: true)
-      let failedSnapshotFileUrl = artifactsSubUrl.appendingPathComponent(snapshotFileUrl.lastPathComponent)
-      try snapshotting.diffing.toData(diffable).write(to: failedSnapshotFileUrl)
-
-      if !attachments.isEmpty {
+      if !artifacts.isEmpty {
         #if !os(Linux)
         if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
           XCTContext.runActivity(named: "Attached Failure Diff") { activity in
-            attachments.forEach {
-              activity.add($0)
+            artifacts.forEach {
+              let attachment = XCTAttachment(
+                uniformTypeIdentifier: $0.uniformTypeIdentifier,
+                name: $0.artifactType.rawValue,
+                payload: $0.data
+              )
+              activity.add(attachment)
             }
           }
         }
         #endif
       }
 
+      /// Write artifacts to disk
+      let artifactsUrl = URL(
+        fileURLWithPath: ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"] ?? NSTemporaryDirectory()
+      )
+      let testDirectoryName: String = "\(testName).\(identifier)"
+      let artifactsSubUrl = artifactsUrl.appendingPathComponent(fileName).appendingPathComponent(testDirectoryName)
+      try fileManager.createDirectory(at: artifactsSubUrl, withIntermediateDirectories: true)
+      
+      for artifact in artifacts {
+        let artifactFileName = testDirectoryName + "_" + artifact.artifactType.rawValue
+        let artifactFileUrl = artifactsSubUrl.appendingPathComponent(artifactFileName)
+            .appendingPathExtension(snapshotting.pathExtension ?? "")
+        try artifact.data.write(to: artifactFileUrl)
+      }
+      
+      let failedSnapshotFileUrl = artifactsSubUrl
+        .appendingPathComponent(testDirectoryName + "_" + SnapshotArtifact.ArtifactType.failure.rawValue)
+        .appendingPathExtension(snapshotting.pathExtension ?? "")
+      
       let diffMessage = diffTool
         .map { "\($0) \"\(snapshotFileUrl.path)\" \"\(failedSnapshotFileUrl.path)\"" }
         ?? "@\(minus)\n\"\(snapshotFileUrl.path)\"\n@\(plus)\n\"\(failedSnapshotFileUrl.path)\""
       return """
       Snapshot does not match reference.
-
+      
       \(diffMessage)
-
+      
       \(failure.trimmingCharacters(in: .whitespacesAndNewlines))
       """
     } catch {

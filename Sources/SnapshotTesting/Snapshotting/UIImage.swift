@@ -20,15 +20,24 @@ extension Diffing where Value == UIImage {
       let message = new.size == old.size
         ? "Newly-taken snapshot does not match reference."
         : "Newly-taken snapshot@\(new.size) does not match reference@\(old.size)."
-      let oldAttachment = XCTAttachment(image: old)
-      oldAttachment.name = "reference"
-      let newAttachment = XCTAttachment(image: new)
-      newAttachment.name = "failure"
-      let differenceAttachment = XCTAttachment(image: difference)
-      differenceAttachment.name = "difference"
+      let oldArtifact = SnapshotArtifact(
+        data: old.pngData()!,
+        artifactType: .reference,
+        uniformTypeIdentifier: "public.png"
+      )
+      let newArtifact = SnapshotArtifact(
+        data: new.pngData()!,
+        artifactType: .failure,
+        uniformTypeIdentifier: "public.png"
+      )
+      let differenceArtifact = SnapshotArtifact(
+        data: difference.pngData()!,
+        artifactType: .difference,
+        uniformTypeIdentifier: "public.png"
+      )
       return (
         message,
-        [oldAttachment, newAttachment, differenceAttachment]
+        [oldArtifact, newArtifact, differenceArtifact]
       )
     }
   }

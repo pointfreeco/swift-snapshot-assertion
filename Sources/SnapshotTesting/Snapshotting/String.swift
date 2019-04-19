@@ -20,7 +20,11 @@ extension Diffing where Value == String {
     let failure = hunks
       .flatMap { [$0.patchMark] + $0.lines }
       .joined(separator: "\n")
-    let attachment = XCTAttachment(data: Data(failure.utf8), uniformTypeIdentifier: "public.patch-file")
-    return (failure, [attachment])
+    let artifact = SnapshotArtifact(
+      data: Data(failure.utf8),
+      artifactType: .failure,
+      uniformTypeIdentifier: "public.patch-file"
+    )
+    return (failure, [artifact])
   }
 }
