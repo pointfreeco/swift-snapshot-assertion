@@ -14,7 +14,7 @@ extension Diffing where Value == UIImage {
     return Diffing(
       toData: { $0.pngData()! },
       fromData: { UIImage(data: $0, scale: UIScreen.main.scale)! }
-    ) { old, new in
+    ) { old, new -> (String, [SnapshotArtifact])? in
       guard !compare(old, new, precision: precision) else { return nil }
       let difference = SnapshotTesting.diff(old, new)
       let message = new.size == old.size

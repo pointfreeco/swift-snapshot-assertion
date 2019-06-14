@@ -14,7 +14,7 @@ extension Diffing where Value == NSImage {
     return .init(
       toData: { NSImagePNGRepresentation($0)! },
       fromData: { NSImage(data: $0)! }
-    ) { old, new in
+    ) { old, new -> (String, [SnapshotArtifact])? in
       guard !compare(old, new, precision: precision) else { return nil }
       let difference = SnapshotTesting.diff(old, new)
       let message = new.size == old.size
