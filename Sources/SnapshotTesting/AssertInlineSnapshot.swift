@@ -194,6 +194,7 @@ internal struct Context {
   let sourceCode: String
   let diffable: String
   let fileName: String
+  // First line of a file is line 1 (as with the #line macro)
   let lineIndex: Int
 
   func setSourceCode(_ newSourceCode: String) -> Context {
@@ -242,7 +243,35 @@ internal func writeInlineSnapshot(_ recordings: inout Recordings,
   }
 
   /// Find the end of multi-line literal and replace contents with recording.
-  if let multiLineLiteralEndIndex = sourceCodeLines[offsetStartIndex...].firstIndex(where: { $0.contains(multiLineStringLiteralTerminator) }) {
+  if let multiLineLiteralEndIndex = sourceCodeLines[offsetStartIndex...].firstIndex(where: { $0.hasClosingMultilineStringDelimiter() }) {
+
+    let diffableLines = context.diffable.split(separator: "\n")
+
+    // Add #'s to the multiline string literal if needed
+    let numberSigns: String
+    if context.diffable.hasEscapedSpecialCharactersLiteral() {
+      numberSigns = String(repeating: "#", count: context.diffable.numberOfNumberSignsNeeded())
+    } else if nil != diffableLines.first(where: { $0.endsInBackslash() }) {
+      // We want to avoid \ being interpreted as an escaped newline in the recorded inline snapshot
+      numberSigns = "#"
+    } else {
+      numberSigns = ""
+    }
+    let multiLineStringLiteralTerminatorPre = numberSigns + multiLineStringLiteralTerminator
+    let multiLineStringLiteralTerminatorPost = multiLineStringLiteralTerminator + numberSigns
+
+    // Update opening (#...)"""
+    sourceCodeLines[functionLineIndex].replaceFirstOccurrence(
+      of: extendedOpeningStringDelimitersPattern,
+      with: multiLineStringLiteralTerminatorPre
+    )
+
+    // Update closing """(#...)
+    sourceCodeLines[multiLineLiteralEndIndex].replaceFirstOccurrence(
+      of: extendedClosingStringDelimitersPattern,
+      with: multiLineStringLiteralTerminatorPost
+    )
+
     /// Convert actual value to Lines to insert
     let indentText = indentation(of: sourceCodeLines[multiLineLiteralEndIndex])
     let newDiffableLines = context.diffable
@@ -276,8 +305,32 @@ private func indentation<S: StringProtocol>(of str: S) -> String {
   return String(repeating: " ", count: count)
 }
 
+fileprivate extension Substring {
+  mutating func replaceFirstOccurrence(of pattern: String, with newString: String) {
+    let newString = replacingOccurrences(of: pattern, with: newString, options: .regularExpression)
+    self = Substring(newString)
+  }
+
+  func hasOpeningMultilineStringDelimiter() -> Bool {
+    return range(of: extendedOpeningStringDelimitersPattern, options: .regularExpression) != nil
+  }
+
+  func hasClosingMultilineStringDelimiter() -> Bool {
+    return range(of: extendedClosingStringDelimitersPattern, options: .regularExpression) != nil
+  }
+
+  func endsInBackslash() -> Bool {
+    if let lastChar = last {
+      return lastChar == Character(#"\"#)
+    }
+    return false
+  }
+}
+
 private let emptyStringLiteralWithCloseBrace = "\"\")"
 private let multiLineStringLiteralTerminator = "\"\"\""
+private let extendedOpeningStringDelimitersPattern = #"#{0,}\"\"\""#
+private let extendedClosingStringDelimitersPattern = ##"\"\"\"#{0,}"##
 
 // When we modify a file, the line numbers reported by the compiler through #line are no longer
 // accurate. With the FileRecording values we keep track of we modify the files so we can adjust

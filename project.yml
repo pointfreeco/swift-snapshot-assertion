@@ -31,5 +31,5 @@ targets:
         excludes:
           - LinuxMain.swift
           - '**/__Fixtures__'
-          - '**/__Snapshots__'
+          - '**/__Snapshots__/SnapshotTestingTests'
     type: bundle.unit-test
