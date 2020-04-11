@@ -1,0 +1,5 @@
+POST http://dummy.restapiexample.com/api/v1/create
+Accept: application/json
+Content-Type: application/json
+
+{"name":"tammy134235345235", "salary":0, "age":"tammy133"}

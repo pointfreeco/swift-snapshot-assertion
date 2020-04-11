@@ -10,7 +10,7 @@ class InlineSnapshotTests: XCTestCase {
     """
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
     ).sourceCode
@@ -26,7 +26,7 @@ class InlineSnapshotTests: XCTestCase {
     """#
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
     ).sourceCode
@@ -43,7 +43,7 @@ class InlineSnapshotTests: XCTestCase {
     """#
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
     ).sourceCode
@@ -60,7 +60,7 @@ class InlineSnapshotTests: XCTestCase {
     """#
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -78,7 +78,7 @@ class InlineSnapshotTests: XCTestCase {
     """#
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -93,7 +93,7 @@ class InlineSnapshotTests: XCTestCase {
     """
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -111,7 +111,7 @@ class InlineSnapshotTests: XCTestCase {
     """
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -126,7 +126,7 @@ class InlineSnapshotTests: XCTestCase {
     """##
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -142,7 +142,7 @@ class InlineSnapshotTests: XCTestCase {
     """##
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -158,7 +158,7 @@ class InlineSnapshotTests: XCTestCase {
     """###
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -174,7 +174,7 @@ class InlineSnapshotTests: XCTestCase {
     """###
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -190,7 +190,7 @@ class InlineSnapshotTests: XCTestCase {
     """####
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -206,7 +206,7 @@ class InlineSnapshotTests: XCTestCase {
     """#
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -222,7 +222,7 @@ class InlineSnapshotTests: XCTestCase {
     """##
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -239,7 +239,7 @@ class InlineSnapshotTests: XCTestCase {
     """##
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -256,7 +256,7 @@ class InlineSnapshotTests: XCTestCase {
     """###
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -273,7 +273,7 @@ class InlineSnapshotTests: XCTestCase {
     """#
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -290,7 +290,7 @@ class InlineSnapshotTests: XCTestCase {
     """##
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -307,7 +307,7 @@ class InlineSnapshotTests: XCTestCase {
     """###
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -324,7 +324,7 @@ class InlineSnapshotTests: XCTestCase {
     """####
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode
@@ -351,12 +351,12 @@ class InlineSnapshotTests: XCTestCase {
     """
 
     var recordings: Recordings = [:]
-    let sourceAfterFirstSnapshot = writeInlineSnapshot(
+    let sourceAfterFirstSnapshot = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable1, fileName: "filename", lineIndex: 1)
     ).sourceCode
 
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: sourceAfterFirstSnapshot, diffable: diffable2, fileName: "filename", lineIndex: 5)
     ).sourceCode
@@ -383,12 +383,12 @@ class InlineSnapshotTests: XCTestCase {
     """
 
     var recordings: Recordings = [:]
-    let sourceAfterFirstSnapshot = writeInlineSnapshot(
+    let sourceAfterFirstSnapshot = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable1, fileName: "filename", lineIndex: 1)
       ).sourceCode
 
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: sourceAfterFirstSnapshot, diffable: diffable2, fileName: "filename", lineIndex: 6)
       ).sourceCode
@@ -418,12 +418,12 @@ class InlineSnapshotTests: XCTestCase {
     """
 
     var recordings: Recordings = [:]
-    let sourceAfterFirstSnapshot = writeInlineSnapshot(
+    let sourceAfterFirstSnapshot = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable1, fileName: "filename", lineIndex: 1)
       ).sourceCode
 
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: sourceAfterFirstSnapshot, diffable: diffable2, fileName: "filename", lineIndex: 5)
       ).sourceCode
@@ -453,12 +453,12 @@ class InlineSnapshotTests: XCTestCase {
     """
 
     var recordings: Recordings = [:]
-    let sourceAfterFirstSnapshot = writeInlineSnapshot(
+    let sourceAfterFirstSnapshot = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable1, fileName: "filename", lineIndex: 1)
       ).sourceCode
 
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: sourceAfterFirstSnapshot, diffable: diffable2, fileName: "filename", lineIndex: 6)
       ).sourceCode
@@ -480,7 +480,7 @@ class InlineSnapshotTests: XCTestCase {
     """######
 
     var recordings: Recordings = [:]
-    let newSource = writeInlineSnapshot(
+    let newSource = try! writeInlineSnapshot(
       &recordings,
       Context(sourceCode: source, diffable: diffable, fileName: "filename", lineIndex: 1)
       ).sourceCode

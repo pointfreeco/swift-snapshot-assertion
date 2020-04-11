@@ -1,2 +1,2 @@
-<UIButton; frame = (0 0; 22 22); opaque = NO; layer = <CALayer>>
-   | <UIImageView; frame = (0 0; 22 22); clipsToBounds = YES; opaque = NO; userInteractionEnabled = NO; layer = <CALayer>>
+<UIButton; frame = (0 0; 24.3333 23.6667); opaque = NO; layer = <CALayer>>
+   | <UIImageView; frame = (0 0; 24.3333 23.6667); clipsToBounds = YES; opaque = NO; userInteractionEnabled = NO; layer = <CALayer>>

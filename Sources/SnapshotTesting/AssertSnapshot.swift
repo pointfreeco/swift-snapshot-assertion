@@ -219,11 +219,6 @@ public func verifySnapshot<Value, Format>(
       }
 
       guard !recording, fileManager.fileExists(atPath: snapshotFileUrl.path) else {
-        let diffMessage = (try? Data(contentsOf: snapshotFileUrl))
-          .flatMap { data in snapshotting.diffing.diff(snapshotting.diffing.fromData(data), diffable) }
-          .map { diff, _ in diff.trimmingCharacters(in: .whitespacesAndNewlines) }
-          ?? "Recorded snapshot: …"
-
         try snapshotting.diffing.toData(diffable).write(to: snapshotFileUrl)
         return recording
           ? """
@@ -231,7 +226,7 @@ public func verifySnapshot<Value, Format>(
 
             open "\(snapshotFileUrl.path)"
 
-            \(diffMessage)
+            Recorded snapshot: …
             """
           : """
             No reference was found on disk. Automatically recorded snapshot: …

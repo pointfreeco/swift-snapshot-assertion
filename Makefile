@@ -15,7 +15,7 @@ test-ios:
 	set -o pipefail && \
 	xcodebuild test \
 		-scheme SnapshotTesting_iOS \
-		-destination platform="iOS Simulator,name=iPhone Xʀ,OS=12.2" \
+		-destination platform="iOS Simulator,name=iPhone 11 Pro Max,OS=13.2.2" \
 
 test-swift:
 	swift test
@@ -24,6 +24,6 @@ test-tvos:
 	set -o pipefail && \
 	xcodebuild test \
 		-scheme SnapshotTesting_tvOS \
-		-destination platform="tvOS Simulator,name=Apple TV 4K,OS=12.2" \
+		-destination platform="tvOS Simulator,name=Apple TV 4K,OS=13.2" \
 
 test-all: test-linux test-macos test-ios

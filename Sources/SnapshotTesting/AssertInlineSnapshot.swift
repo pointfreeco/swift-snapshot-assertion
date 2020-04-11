@@ -112,7 +112,7 @@ public func _verifyInlineSnapshot<Value>(
         let sourceCode = try String(contentsOf: sourceCodeFilePath)
         var newRecordings = recordings
 
-        let modifiedSource = writeInlineSnapshot(
+        let modifiedSource = try writeInlineSnapshot(
           &newRecordings,
           Context(
             sourceCode: sourceCode,
@@ -207,8 +207,10 @@ internal struct Context {
   }
 }
 
-internal func writeInlineSnapshot(_ recordings: inout Recordings,
-                                  _ context: Context) -> Context {
+internal func writeInlineSnapshot(
+  _ recordings: inout Recordings,
+  _ context: Context
+) throws -> Context {
   var sourceCodeLines = context.sourceCode
     .split(separator: "\n", omittingEmptySubsequences: false)
 
@@ -237,9 +239,14 @@ internal func writeInlineSnapshot(_ recordings: inout Recordings,
 
   /// If they haven't got a multi-line literal by now, then just fail.
   guard sourceCodeLines[functionLineIndex].hasSuffix(multiLineStringLiteralTerminator) else {
-    return context.setSourceCode("""
-          To use inline snapshots, please convert the "with" argument to a multi-line literal.
-          """)
+    struct InlineError: LocalizedError {
+      var errorDescription: String? {
+        return """
+To use inline snapshots, please convert the "with" argument to a multi-line literal.
+"""
+      }
+    }
+    throw InlineError()
   }
 
   /// Find the end of multi-line literal and replace contents with recording.

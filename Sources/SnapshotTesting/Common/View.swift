@@ -742,8 +742,11 @@ private func add(traits: UITraitCollection, viewController: UIViewController, to
   rootViewController.view.translatesAutoresizingMaskIntoConstraints =
     viewController.view.translatesAutoresizingMaskIntoConstraints
   rootViewController.preferredContentSize = rootViewController.view.frame.size
+
+  rootViewController.addChild(viewController)
   viewController.view.frame = rootViewController.view.frame
   rootViewController.view.addSubview(viewController.view)
+
   if viewController.view.translatesAutoresizingMaskIntoConstraints {
     viewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
   } else {
@@ -754,14 +757,18 @@ private func add(traits: UITraitCollection, viewController: UIViewController, to
       viewController.view.trailingAnchor.constraint(equalTo: rootViewController.view.trailingAnchor),
       ])
   }
-  rootViewController.addChild(viewController)
   rootViewController.setOverrideTraitCollection(traits, forChild: viewController)
   viewController.didMove(toParent: rootViewController)
+  window.rootViewController = rootViewController
+
   rootViewController.beginAppearanceTransition(true, animated: false)
   rootViewController.endAppearanceTransition()
-  window.rootViewController = rootViewController
+
   rootViewController.view.setNeedsLayout()
   rootViewController.view.layoutIfNeeded()
+
+  viewController.view.setNeedsLayout()
+  viewController.view.layoutIfNeeded()
 }
 
 private final class Window: UIWindow {

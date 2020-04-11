@@ -78,7 +78,9 @@ extension Snapshotting where Value == UIViewController, Format == String {
   }
 
   /// A snapshot strategy for comparing view controller views based on a recursive description of their properties and hierarchies.
-  public static let recursiveDescription = Snapshotting.recursiveDescription()
+  public static var recursiveDescription: Snapshotting {
+    return Snapshotting.recursiveDescription()
+  }
 
   /// A snapshot strategy for comparing view controller views based on a recursive description of their properties and hierarchies.
   ///

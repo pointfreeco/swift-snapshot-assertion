@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = "SnapshotTesting"
-  s.version = "1.5.0"
+  s.version = "1.7.2"
   s.summary = "Tests that save and assert against reference data"
 
   s.description = <<-DESC
@@ -24,7 +24,7 @@ Pod::Spec.new do |s|
     :tag => s.version
   }
 
-  s.swift_version = "5.0"
+  s.swift_versions = "5.0", "5.1.2"
 
   s.ios.deployment_target = "10.0"
   s.osx.deployment_target = "10.10"

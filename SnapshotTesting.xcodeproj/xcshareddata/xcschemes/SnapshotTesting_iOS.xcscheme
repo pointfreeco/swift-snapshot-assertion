@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "64F17F6842573B100D61132C44E859BF"
+               BlueprintIdentifier = "64F17F6842573B100D61132C"
                BuildableName = "SnapshotTesting.framework"
                BlueprintName = "SnapshotTesting_iOS"
                ReferencedContainer = "container:SnapshotTesting.xcodeproj">
@@ -26,13 +26,14 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      onlyGenerateCoverageForSpecifiedTargets = "NO"
       shouldUseLaunchSchemeArgsEnv = "NO">
       <Testables>
          <TestableReference
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "6C1340F5ED556C5C9B3AE6579E6A859C"
+               BlueprintIdentifier = "6C1340F5ED556C5C9B3AE657"
                BuildableName = "SnapshotTestingTests.xctest"
                BlueprintName = "SnapshotTestingTests_iOS"
                ReferencedContainer = "container:SnapshotTesting.xcodeproj">
@@ -42,7 +43,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "64F17F6842573B100D61132C44E859BF"
+            BlueprintIdentifier = "64F17F6842573B100D61132C"
             BuildableName = "SnapshotTesting.framework"
             BlueprintName = "SnapshotTesting_iOS"
             ReferencedContainer = "container:SnapshotTesting.xcodeproj">
@@ -59,6 +60,8 @@
       </EnvironmentVariables>
       <AdditionalOptions>
       </AdditionalOptions>
+      <CodeCoverageTargets>
+      </CodeCoverageTargets>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -73,7 +76,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "64F17F6842573B100D61132C44E859BF"
+            BlueprintIdentifier = "64F17F6842573B100D61132C"
             BuildableName = "SnapshotTesting.framework"
             BlueprintName = "SnapshotTesting_iOS"
             ReferencedContainer = "container:SnapshotTesting.xcodeproj">
@@ -101,7 +104,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "64F17F6842573B100D61132C44E859BF"
+            BlueprintIdentifier = "64F17F6842573B100D61132C"
             BuildableName = "SnapshotTesting.framework"
             BlueprintName = "SnapshotTesting_iOS"
             ReferencedContainer = "container:SnapshotTesting.xcodeproj">

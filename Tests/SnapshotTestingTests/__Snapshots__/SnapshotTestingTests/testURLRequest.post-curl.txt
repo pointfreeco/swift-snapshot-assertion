@@ -1,6 +1,6 @@
 curl \
 	--request POST \
 	--header "Accept: text/html" \
-	--data 'pricing[billing]=monthly&pricing[lane]=individual' \
+	--data "pricing[billing]=monthly&pricing[lane]=individual" \
 	--cookie "pf_session={\"user_id\":\"0\"}" \
 	"https://www.pointfree.co/subscribe"
