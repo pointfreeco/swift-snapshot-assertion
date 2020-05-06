@@ -11,7 +11,7 @@ extension Diffing where Value == String {
   public static let lines = Diffing(
     toData: { Data($0.utf8) },
     fromData: { String(decoding: $0, as: UTF8.self) }
-  ) { old, new in
+  ) { old, new -> (String, [SnapshotArtifact])? in
     guard old != new else { return nil }
     let hunks = chunk(diff: SnapshotTesting.diff(
       old.split(separator: "\n", omittingEmptySubsequences: false).map(String.init),
@@ -20,7 +20,11 @@ extension Diffing where Value == String {
     let failure = hunks
       .flatMap { [$0.patchMark] + $0.lines }
       .joined(separator: "\n")
-    let attachment = XCTAttachment(data: Data(failure.utf8), uniformTypeIdentifier: "public.patch-file")
-    return (failure, [attachment])
+    let artifact = SnapshotArtifact(
+      data: Data(failure.utf8),
+      artifactType: .failure,
+      uniformTypeIdentifier: "public.patch-file"
+    )
+    return (failure, [artifact])
   }
 }
