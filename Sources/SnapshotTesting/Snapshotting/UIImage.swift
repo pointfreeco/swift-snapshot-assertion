@@ -9,13 +9,14 @@ extension Diffing where Value == UIImage {
   /// A pixel-diffing strategy for UIImage that allows customizing how precise the matching must be.
   ///
   /// - Parameter precision: A value between 0 and 1, where 1 means the images must match 100% of their pixels.
+  /// - Parameter allowedDifference: A value between 0 and 255, where 0 means color component values must match 100%.
   /// - Returns: A new diffing strategy.
-  public static func image(precision: Float) -> Diffing {
+  public static func image(precision: Float, allowedDifference: UInt8 = 0) -> Diffing {
     return Diffing(
       toData: { $0.pngData() ?? emptyImage().pngData()! },
       fromData: { UIImage(data: $0, scale: UIScreen.main.scale)! }
     ) { old, new in
-      guard !compare(old, new, precision: precision) else { return nil }
+      guard !compare(old, new, precision: precision, allowedDifference: allowedDifference) else { return nil }
       let difference = SnapshotTesting.diff(old, new)
       let message = new.size == old.size
         ? "Newly-taken snapshot does not match reference."
@@ -54,15 +55,16 @@ extension Snapshotting where Value == UIImage, Format == UIImage {
   /// A snapshot strategy for comparing images based on pixel equality.
   ///
   /// - Parameter precision: The percentage of pixels that must match.
-  public static func image(precision: Float) -> Snapshotting {
+  /// - Parameter allowedDifference: Allowed difference between color component values to assume them as match.
+  public static func image(precision: Float, allowedDifference: UInt8 = 0) -> Snapshotting {
     return .init(
       pathExtension: "png",
-      diffing: .image(precision: precision)
+      diffing: .image(precision: precision, allowedDifference: allowedDifference)
     )
   }
 }
 
-private func compare(_ old: UIImage, _ new: UIImage, precision: Float) -> Bool {
+private func compare(_ old: UIImage, _ new: UIImage, precision: Float, allowedDifference: UInt8) -> Bool {
   guard let oldCgImage = old.cgImage else { return false }
   guard let newCgImage = new.cgImage else { return false }
   guard oldCgImage.width != 0 else { return false }
@@ -90,12 +92,20 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float) -> Bool {
   guard let newerContext = context(for: newerCgImage, bytesPerRow: minBytesPerRow, data: &newerBytes) else { return false }
   guard let newerData = newerContext.data else { return false }
   if memcmp(oldData, newerData, byteCount) == 0 { return true }
-  if precision >= 1 { return false }
-  var differentPixelCount = 0
+  let precision = min(max(precision, 0), 1)
+  if precision == 1 && allowedDifference == 0 { return false }
+  if precision == 0 || allowedDifference == 255 { return true }
   let threshold = 1 - precision
+  var differentPixelCount = 0
   for byte in 0..<byteCount {
-    if oldBytes[byte] != newerBytes[byte] { differentPixelCount += 1 }
-    if Float(differentPixelCount) / Float(byteCount) > threshold { return false}
+    if (oldBytes[byte] != newerBytes[byte]) && (byte % 4 != 0) {  // skip alpha testing because alpha is already premultiplied
+      if allowedDifference == 0 || abs(Int(oldBytes[byte]) - Int(newerBytes[byte])) > allowedDifference {
+        differentPixelCount += 1
+        if Float(differentPixelCount) / Float(byteCount) > threshold {
+          return false
+        }
+      }
+    }
   }
   return true
 }
