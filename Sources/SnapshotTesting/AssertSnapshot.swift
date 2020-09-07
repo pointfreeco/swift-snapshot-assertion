@@ -15,6 +15,7 @@ public var record = false
 ///   - snapshotting: A strategy for serializing, deserializing, and comparing values.
 ///   - name: An optional description of the snapshot.
 ///   - recording: Whether or not to record a new reference.
+///   - alwaysRecordMissing: If true, references will be recorded for ones that are missing on disk.
 ///   - timeout: The amount of time a snapshot must be generated in.
 ///   - file: The file in which failure occurred. Defaults to the file name of the test case in which this function was called.
 ///   - testName: The name of the test in which failure occurred. Defaults to the function name of the test case in which this function was called.
@@ -24,6 +25,7 @@ public func assertSnapshot<Value, Format>(
   as snapshotting: Snapshotting<Value, Format>,
   named name: String? = nil,
   record recording: Bool = false,
+  alwaysRecordMissing: Bool = true,
   timeout: TimeInterval = 5,
   file: StaticString = #file,
   testName: String = #function,
@@ -35,6 +37,7 @@ public func assertSnapshot<Value, Format>(
     as: snapshotting,
     named: name,
     record: recording,
+    alwaysRecordMissing: alwaysRecordMissing,
     timeout: timeout,
     file: file,
     testName: testName,
@@ -50,6 +53,7 @@ public func assertSnapshot<Value, Format>(
 ///   - value: A value to compare against a reference.
 ///   - snapshotting: A dictionary of names and strategies for serializing, deserializing, and comparing values.
 ///   - recording: Whether or not to record a new reference.
+///   - alwaysRecordMissing: If true, references will be recorded for ones that are missing on disk.
 ///   - timeout: The amount of time a snapshot must be generated in.
 ///   - file: The file in which failure occurred. Defaults to the file name of the test case in which this function was called.
 ///   - testName: The name of the test in which failure occurred. Defaults to the function name of the test case in which this function was called.
@@ -58,6 +62,7 @@ public func assertSnapshots<Value, Format>(
   matching value: @autoclosure () throws -> Value,
   as strategies: [String: Snapshotting<Value, Format>],
   record recording: Bool = false,
+  alwaysRecordMissing: Bool = true,
   timeout: TimeInterval = 5,
   file: StaticString = #file,
   testName: String = #function,
@@ -70,6 +75,7 @@ public func assertSnapshots<Value, Format>(
       as: strategy,
       named: name,
       record: recording,
+      alwaysRecordMissing: alwaysRecordMissing,
       timeout: timeout,
       file: file,
       testName: testName,
@@ -84,6 +90,7 @@ public func assertSnapshots<Value, Format>(
 ///   - value: A value to compare against a reference.
 ///   - snapshotting: An array of strategies for serializing, deserializing, and comparing values.
 ///   - recording: Whether or not to record a new reference.
+///   - alwaysRecordMissing: If true, references will be recorded for ones that are missing on disk.
 ///   - timeout: The amount of time a snapshot must be generated in.
 ///   - file: The file in which failure occurred. Defaults to the file name of the test case in which this function was called.
 ///   - testName: The name of the test in which failure occurred. Defaults to the function name of the test case in which this function was called.
@@ -92,6 +99,7 @@ public func assertSnapshots<Value, Format>(
   matching value: @autoclosure () throws -> Value,
   as strategies: [Snapshotting<Value, Format>],
   record recording: Bool = false,
+  alwaysRecordMissing: Bool = true,
   timeout: TimeInterval = 5,
   file: StaticString = #file,
   testName: String = #function,
@@ -103,6 +111,7 @@ public func assertSnapshots<Value, Format>(
       matching: try value(),
       as: strategy,
       record: recording,
+      alwaysRecordMissing: alwaysRecordMissing,
       timeout: timeout,
       file: file,
       testName: testName,
@@ -146,6 +155,7 @@ public func assertSnapshots<Value, Format>(
 ///   - snapshotting: A strategy for serializing, deserializing, and comparing values.
 ///   - name: An optional description of the snapshot.
 ///   - recording: Whether or not to record a new reference.
+///   - alwaysRecordMissing: If true, references will be recorded for ones that are missing on disk.
 ///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved in a directory with the same name as the test file, and that directory will sit inside a directory `__Snapshots__` that sits next to your test file.
 ///   - timeout: The amount of time a snapshot must be generated in.
 ///   - file: The file in which failure occurred. Defaults to the file name of the test case in which this function was called.
@@ -157,6 +167,7 @@ public func verifySnapshot<Value, Format>(
   as snapshotting: Snapshotting<Value, Format>,
   named name: String? = nil,
   record recording: Bool = false,
+  alwaysRecordMissing: Bool = true,
   snapshotDirectory: String? = nil,
   timeout: TimeInterval = 5,
   file: StaticString = #file,
@@ -226,22 +237,29 @@ public func verifySnapshot<Value, Format>(
       }
       
       guard !recording, fileManager.fileExists(atPath: snapshotFileUrl.path) else {
-        try snapshotting.diffing.toData(diffable).write(to: snapshotFileUrl)
-        return recording
-          ? """
-            Record mode is on. Turn record mode off and re-run "\(testName)" to test against the newly-recorded snapshot.
+        if recording || alwaysRecordMissing {
+          try snapshotting.diffing.toData(diffable).write(to: snapshotFileUrl)
+          return recording
+            ? """
+              Record mode is on. Turn record mode off and re-run "\(testName)" to test against the newly-recorded snapshot.
 
-            open "\(snapshotFileUrl.path)"
+              open "\(snapshotFileUrl.path)"
 
-            Recorded snapshot: …
-            """
-          : """
-            No reference was found on disk. Automatically recorded snapshot: …
+              Recorded snapshot: …
+              """
+            : """
+              No reference was found on disk. Automatically recorded snapshot: …
 
-            open "\(snapshotFileUrl.path)"
+              open "\(snapshotFileUrl.path)"
 
-            Re-run "\(testName)" to test against the newly-recorded snapshot.
-            """
+              Re-run "\(testName)" to test against the newly-recorded snapshot.
+              """
+        }
+        else {
+          return """
+                 No reference was found on disk for test \(testName).
+                 """
+        }
       }
 
       let data = try Data(contentsOf: snapshotFileUrl)

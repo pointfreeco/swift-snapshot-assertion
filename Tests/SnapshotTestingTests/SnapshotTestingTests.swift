@@ -1064,6 +1064,21 @@ final class SnapshotTestingTests: XCTestCase {
     assertSnapshot(matching: view, as: .image(layout: .device(config: .tv)), named: "device")
     #endif
   }
+
+  func testSnapshotAutowriteBehavior() {
+    #if os(iOS)
+    let view = UIButton(type: .contactAdd)
+
+    // When record mode is off the default behavior when verifying a non-existing snapshot is that it will write
+    // the snapshot to disk. This means it will pass the second time the test is run.
+    XCTAssertNotNil(verifySnapshot(matching: view, as: .image, named: "should-pass"))
+    XCTAssertNil(verifySnapshot(matching: view, as: .image, named: "should-pass"))
+
+    // When doing the same test with alwaysRecordMissing as false, this should fail both times.
+    XCTAssertNotNil(verifySnapshot(matching: view, as: .image, named: "should-fail", alwaysRecordMissing: false))
+    XCTAssertNotNil(verifySnapshot(matching: view, as: .image, named: "should-fail", alwaysRecordMissing: false))
+    #endif
+  }
 }
 
 #if os(iOS)
