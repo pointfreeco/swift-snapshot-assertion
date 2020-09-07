@@ -192,6 +192,7 @@ end
   - **Subclass-free.** Assert from any XCTest case or Quick spec.
   - **Device-agnostic snapshots.** Render views and view controllers for specific devices and trait collections from a single simulator.
   - **First-class Xcode support.** Image differences are captured as XCTest attachments. Text differences are rendered in inline error messages.
+  - **Support for Xcode Test Plans**. Just add `SNAPSHOT_CONFIGURATION_NAME` environment variable to every Configuration in your test plan (with distinctive names as values) to save separate snapshots for each one of them. It can be used for making UI snapshots with different langauges and locales.
   - **Supports any platform that supports Swift.** Write snapshot tests for iOS, Linux, macOS, and tvOS.
   - **SceneKit, SpriteKit, and WebKit support.** Most snapshot testing libraries don't support these view subclasses.
   - **`Codable` support**. Snapshot encodable data structures into their [JSON](Documentation/Available-Snapshot-Strategies.md#json) and [property list](Documentation/Available-Snapshot-Strategies.md#plist) representations.
