@@ -8,6 +8,12 @@ public var diffTool: String? = nil
 /// Whether or not to record all new references.
 public var record = false
 
+/// Set this to the simulator used to create reference images for better failure messages
+public var referenceDevice: String?
+
+/// Set this to the OS version used to create reference images for better failure messages
+public var referenceMajorOSVersion: Int?
+
 /// Asserts that a given value matches a reference on disk.
 ///
 /// - Parameters:
@@ -167,6 +173,10 @@ public func verifySnapshot<Value, Format>(
 
     let recording = recording || record
 
+    if let failure = isSimulatorAllowed() {
+      return failure
+    }
+  
     do {
       let fileUrl = URL(fileURLWithPath: "\(file)", isDirectory: false)
       let fileName = fileUrl.deletingPathExtension().lastPathComponent
@@ -302,4 +312,26 @@ func sanitizePathComponent(_ string: String) -> String {
   return string
     .replacingOccurrences(of: "\\W+", with: "-", options: .regularExpression)
     .replacingOccurrences(of: "^-|-$", with: "", options: .regularExpression)
+}
+
+func isSimulatorAllowed() -> String? {
+  let processInfo = ProcessInfo.processInfo
+
+  guard let referenceDevice = referenceDevice,
+        let referenceVersion = referenceMajorOSVersion,
+        let device = processInfo.environment["SIMULATOR_MODEL_IDENTIFIER"] else {
+    return nil
+  }
+  
+  let version = processInfo.operatingSystemVersion.majorVersion
+  
+  if device == referenceDevice, version == referenceVersion {
+    return nil
+  }
+  
+  return """
+  Snapshots should be verified using the same simulator used to create the reference images.
+  Expected: \(referenceDevice) running major iOS version \(referenceVersion)
+  Used: \(device) running major iOS version \(version)
+  """
 }
