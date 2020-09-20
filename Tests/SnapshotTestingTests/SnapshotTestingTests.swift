@@ -1018,6 +1018,84 @@ final class SnapshotTestingTests: XCTestCase {
     #endif
   }
 
+  @available(iOS 11.0, *)
+  func testViewImageConfigName() {
+    #if os(iOS)
+    XCTAssertEqual(ViewImageConfig.iPhoneSe.name, "iPhoneSe_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPhoneSe(.portrait).name, "iPhoneSe_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPhoneSe(.landscape).name, "iPhoneSe_Landscape")
+
+    XCTAssertEqual(ViewImageConfig.iPhone8.name, "iPhone8_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPhone8(.portrait).name, "iPhone8_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPhone8(.landscape).name, "iPhone8_Landscape")
+
+    XCTAssertEqual(ViewImageConfig.iPhone8Plus.name, "iPhone8Plus_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPhone8Plus(.portrait).name, "iPhone8Plus_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPhone8Plus(.landscape).name, "iPhone8Plus_Landscape")
+
+    XCTAssertEqual(ViewImageConfig.iPhoneX.name, "iPhoneX_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPhoneX(.portrait).name, "iPhoneX_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPhoneX(.landscape).name, "iPhoneX_Landscape")
+
+    XCTAssertEqual(ViewImageConfig.iPhoneXr.name, "iPhoneXr_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPhoneXr(.portrait).name, "iPhoneXr_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPhoneXr(.landscape).name, "iPhoneXr_Landscape")
+
+    XCTAssertEqual(ViewImageConfig.iPhoneXsMax.name, "iPhoneXsMax_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPhoneXsMax(.portrait).name, "iPhoneXsMax_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPhoneXsMax(.landscape).name, "iPhoneXsMax_Landscape")
+
+    XCTAssertEqual(ViewImageConfig.iPadMini.name, "iPadMini_Landscape")
+    XCTAssertEqual(ViewImageConfig.iPadMini(.landscape).name, "iPadMini_Landscape")
+    XCTAssertEqual(ViewImageConfig.iPadMini(.landscape(splitView: .oneThird)).name, "iPadMini_Landscape_OneThird")
+    XCTAssertEqual(ViewImageConfig.iPadMini(.landscape(splitView: .oneHalf)).name, "iPadMini_Landscape_OneHalf")
+    XCTAssertEqual(ViewImageConfig.iPadMini(.landscape(splitView: .twoThirds)).name, "iPadMini_Landscape_TwoThirds")
+    XCTAssertEqual(ViewImageConfig.iPadMini(.landscape(splitView: .full)).name, "iPadMini_Landscape")
+    XCTAssertEqual(ViewImageConfig.iPadMini(.portrait).name, "iPadMini_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPadMini(.portrait(splitView: .oneThird)).name, "iPadMini_Portrait_OneThird")
+    XCTAssertEqual(ViewImageConfig.iPadMini(.portrait(splitView: .twoThirds)).name, "iPadMini_Portrait_TwoThirds")
+    XCTAssertEqual(ViewImageConfig.iPadMini(.portrait(splitView: .full)).name, "iPadMini_Portrait")
+
+    XCTAssertEqual(ViewImageConfig.iPadPro10_5.name, "iPadPro10_5_Landscape")
+    XCTAssertEqual(ViewImageConfig.iPadPro10_5(.landscape).name, "iPadPro10_5_Landscape")
+    XCTAssertEqual(ViewImageConfig.iPadPro10_5(.landscape(splitView: .oneThird)).name, "iPadPro10_5_Landscape_OneThird")
+    XCTAssertEqual(ViewImageConfig.iPadPro10_5(.landscape(splitView: .oneHalf)).name, "iPadPro10_5_Landscape_OneHalf")
+    XCTAssertEqual(ViewImageConfig.iPadPro10_5(.landscape(splitView: .twoThirds)).name, "iPadPro10_5_Landscape_TwoThirds")
+    XCTAssertEqual(ViewImageConfig.iPadPro10_5(.landscape(splitView: .full)).name, "iPadPro10_5_Landscape")
+    XCTAssertEqual(ViewImageConfig.iPadPro10_5(.portrait).name, "iPadPro10_5_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPadPro10_5(.portrait(splitView: .oneThird)).name, "iPadPro10_5_Portrait_OneThird")
+    XCTAssertEqual(ViewImageConfig.iPadPro10_5(.portrait(splitView: .twoThirds)).name, "iPadPro10_5_Portrait_TwoThirds")
+    XCTAssertEqual(ViewImageConfig.iPadPro10_5(.portrait(splitView: .full)).name, "iPadPro10_5_Portrait")
+
+    XCTAssertEqual(ViewImageConfig.iPadPro11.name, "iPadPro11_Landscape")
+    XCTAssertEqual(ViewImageConfig.iPadPro11(.landscape).name, "iPadPro11_Landscape")
+    XCTAssertEqual(ViewImageConfig.iPadPro11(.landscape(splitView: .oneThird)).name, "iPadPro11_Landscape_OneThird")
+    XCTAssertEqual(ViewImageConfig.iPadPro11(.landscape(splitView: .oneHalf)).name, "iPadPro11_Landscape_OneHalf")
+    XCTAssertEqual(ViewImageConfig.iPadPro11(.landscape(splitView: .twoThirds)).name, "iPadPro11_Landscape_TwoThirds")
+    XCTAssertEqual(ViewImageConfig.iPadPro11(.landscape(splitView: .full)).name, "iPadPro11_Landscape")
+    XCTAssertEqual(ViewImageConfig.iPadPro11(.portrait).name, "iPadPro11_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPadPro11(.portrait(splitView: .oneThird)).name, "iPadPro11_Portrait_OneThird")
+    XCTAssertEqual(ViewImageConfig.iPadPro11(.portrait(splitView: .twoThirds)).name, "iPadPro11_Portrait_TwoThirds")
+    XCTAssertEqual(ViewImageConfig.iPadPro11(.portrait(splitView: .full)).name, "iPadPro11_Portrait")
+
+    XCTAssertEqual(ViewImageConfig.iPadPro12_9.name, "iPadPro12_9_Landscape")
+    XCTAssertEqual(ViewImageConfig.iPadPro12_9(.landscape).name, "iPadPro12_9_Landscape")
+    XCTAssertEqual(ViewImageConfig.iPadPro12_9(.landscape(splitView: .oneThird)).name, "iPadPro12_9_Landscape_OneThird")
+    XCTAssertEqual(ViewImageConfig.iPadPro12_9(.landscape(splitView: .oneHalf)).name, "iPadPro12_9_Landscape_OneHalf")
+    XCTAssertEqual(ViewImageConfig.iPadPro12_9(.landscape(splitView: .twoThirds)).name, "iPadPro12_9_Landscape_TwoThirds")
+    XCTAssertEqual(ViewImageConfig.iPadPro12_9(.landscape(splitView: .full)).name, "iPadPro12_9_Landscape")
+    XCTAssertEqual(ViewImageConfig.iPadPro12_9(.portrait).name, "iPadPro12_9_Portrait")
+    XCTAssertEqual(ViewImageConfig.iPadPro12_9(.portrait(splitView: .oneThird)).name, "iPadPro12_9_Portrait_OneThird")
+    XCTAssertEqual(ViewImageConfig.iPadPro12_9(.portrait(splitView: .twoThirds)).name, "iPadPro12_9_Portrait_TwoThirds")
+    XCTAssertEqual(ViewImageConfig.iPadPro12_9(.portrait(splitView: .full)).name, "iPadPro12_9_Portrait")
+    #endif
+
+    #if os(tvOS)
+    XCTAssertEqual(ViewImageConfig.tv.name, "tv")
+    XCTAssertEqual(ViewImageConfig.tv4K.name, "tv4K")
+    #endif
+  }
+
   @available(iOS 13.0, *)
   func testSwiftUIView_iOS() {
     #if os(iOS)
