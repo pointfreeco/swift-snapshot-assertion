@@ -1,6 +1,7 @@
 import Foundation
+
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+  import FoundationNetworking
 #endif
 
 extension Snapshotting where Value == URLRequest, Format == String {
@@ -21,17 +22,20 @@ extension Snapshotting where Value == URLRequest, Format == String {
       let body: [String]
       do {
         if pretty, #available(iOS 11.0, macOS 10.13, tvOS 11.0, *) {
-          body = try request.httpBody
+          body =
+            try request.httpBody
             .map { try JSONSerialization.jsonObject(with: $0, options: []) }
-            .map { try JSONSerialization.data(withJSONObject: $0, options: [.prettyPrinted, .sortedKeys]) }
+            .map {
+              try JSONSerialization.data(withJSONObject: $0, options: [.prettyPrinted, .sortedKeys])
+            }
             .map { ["\n\(String(decoding: $0, as: UTF8.self))"] }
             ?? []
         } else {
           throw NSError(domain: "co.pointfree.Never", code: 1, userInfo: nil)
         }
-      }
-      catch {
-        body = request.httpBody
+      } catch {
+        body =
+          request.httpBody
           .map { ["\n\(String(decoding: $0, as: UTF8.self))"] }
           ?? []
       }
@@ -39,7 +43,7 @@ extension Snapshotting where Value == URLRequest, Format == String {
       return ([method] + headers + body).joined(separator: "\n")
     }
   }
-  
+
   /// A snapshot strategy for comparing requests based on a cURL representation.
   public static let curl = SimplySnapshotting.lines.pullback { (request: URLRequest) in
 
@@ -62,13 +66,15 @@ extension Snapshotting where Value == URLRequest, Format == String {
     }
 
     // Body
-    if let httpBodyData = request.httpBody, let httpBody = String(data: httpBodyData, encoding: .utf8) {
+    if let httpBodyData = request.httpBody,
+      let httpBody = String(data: httpBodyData, encoding: .utf8)
+    {
       var escapedBody = httpBody.replacingOccurrences(of: "\\\"", with: "\\\\\"")
       escapedBody = escapedBody.replacingOccurrences(of: "\"", with: "\\\"")
-      
+
       components.append("--data \"\(escapedBody)\"")
     }
-    
+
     // Cookies
     if let cookie = request.allHTTPHeaderFields?["Cookie"] {
       let escapedValue = cookie.replacingOccurrences(of: "\"", with: "\\\"")

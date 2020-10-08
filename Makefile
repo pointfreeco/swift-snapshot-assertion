@@ -33,3 +33,10 @@ test-tvos:
 		-destination platform="tvOS Simulator,name=Apple TV 4K,OS=13.3" \
 
 test-all: test-linux test-macos test-ios
+
+format:
+	swift format --in-place --recursive \
+		./Package.swift \
+		./Sources \
+		./Tests/*.swift \
+		./Tests/SnapshotTestingTests/*.swift

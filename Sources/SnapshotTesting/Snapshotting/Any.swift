@@ -48,7 +48,8 @@ private func snap<T>(_ value: T, name: String? = nil, indent: Int = 0) -> String
     description = String(describing: value)
   }
 
-  let lines = ["\(indentation)\(bullet) \(name.map { "\($0): " } ?? "")\(description)\n"]
+  let lines =
+    ["\(indentation)\(bullet) \(name.map { "\($0): " } ?? "")\(description)\n"]
     + children.map { snap($1, name: $0, indent: indent + 2) }
 
   return lines.joined()
@@ -100,13 +101,13 @@ extension Date: AnySnapshotStringConvertible {
 
 extension NSObject: AnySnapshotStringConvertible {
   #if canImport(ObjectiveC)
-  @objc open var snapshotDescription: String {
-    return purgePointers(self.debugDescription)
-  }
+    @objc open var snapshotDescription: String {
+      return purgePointers(self.debugDescription)
+    }
   #else
-  open var snapshotDescription: String {
-    return purgePointers(self.debugDescription)
-  }
+    open var snapshotDescription: String {
+      return purgePointers(self.debugDescription)
+    }
   #endif
 }
 
@@ -138,5 +139,6 @@ private let snapshotDateFormatter: DateFormatter = {
 }()
 
 func purgePointers(_ string: String) -> String {
-  return string.replacingOccurrences(of: ":?\\s*0x[\\da-f]+(\\s*)", with: "$1", options: .regularExpression)
+  return string.replacingOccurrences(
+    of: ":?\\s*0x[\\da-f]+(\\s*)", with: "$1", options: .regularExpression)
 }

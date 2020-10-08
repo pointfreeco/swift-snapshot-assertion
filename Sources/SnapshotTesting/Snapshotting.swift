@@ -23,7 +23,7 @@ public struct Snapshotting<Value, Format> {
     pathExtension: String?,
     diffing: Diffing<Format>,
     asyncSnapshot: @escaping (_ value: Value) -> Async<Format>
-    ) {
+  ) {
     self.pathExtension = pathExtension
     self.diffing = diffing
     self.snapshot = asyncSnapshot
@@ -40,7 +40,7 @@ public struct Snapshotting<Value, Format> {
     pathExtension: String?,
     diffing: Diffing<Format>,
     snapshot: @escaping (_ value: Value) -> Format
-    ) {
+  ) {
     self.init(pathExtension: pathExtension, diffing: diffing) {
       Async(value: snapshot($0))
     }
@@ -63,7 +63,9 @@ public struct Snapshotting<Value, Format> {
   /// - Parameters:
   ///   - transform: A transform function from `NewValue` into `Value`.
   ///   - otherValue: A value to be transformed.
-  public func pullback<NewValue>(_ transform: @escaping (_ otherValue: NewValue) -> Value) -> Snapshotting<NewValue, Format> {
+  public func pullback<NewValue>(_ transform: @escaping (_ otherValue: NewValue) -> Value)
+    -> Snapshotting<NewValue, Format>
+  {
     return self.asyncPullback { newValue in Async(value: transform(newValue)) }
   }
 
@@ -74,21 +76,24 @@ public struct Snapshotting<Value, Format> {
   /// - Parameters:
   ///   - transform: A transform function from `NewValue` into `Async<Value>`.
   ///   - otherValue: A value to be transformed.
-  public func asyncPullback<NewValue>(_ transform: @escaping (_ otherValue: NewValue) -> Async<Value>)
-    -> Snapshotting<NewValue, Format> {
+  public func asyncPullback<NewValue>(
+    _ transform: @escaping (_ otherValue: NewValue) -> Async<Value>
+  )
+    -> Snapshotting<NewValue, Format>
+  {
 
-      return Snapshotting<NewValue, Format>(
-        pathExtension: self.pathExtension,
-        diffing: self.diffing
-      ) { newValue in
-        return .init { callback in
-          transform(newValue).run { value in
-            self.snapshot(value).run { snapshot in
-              callback(snapshot)
-            }
+    return Snapshotting<NewValue, Format>(
+      pathExtension: self.pathExtension,
+      diffing: self.diffing
+    ) { newValue in
+      return .init { callback in
+        transform(newValue).run { value in
+          self.snapshot(value).run { snapshot in
+            callback(snapshot)
           }
         }
       }
+    }
   }
 }
 

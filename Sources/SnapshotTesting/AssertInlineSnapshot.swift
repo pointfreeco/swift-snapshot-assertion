@@ -27,7 +27,7 @@ public func _assertInlineSnapshot<Value>(
   file: StaticString = #file,
   testName: String = #function,
   line: UInt = #line
-  ) {
+) {
 
   let failure = _verifyInlineSnapshot(
     matching: try value(),
@@ -66,88 +66,91 @@ public func _verifyInlineSnapshot<Value>(
   file: StaticString = #file,
   testName: String = #function,
   line: UInt = #line
-  )
-  -> String? {
+)
+  -> String?
+{
 
-    let recording = recording || isRecording
+  let recording = recording || isRecording
 
-    do {
-      let tookSnapshot = XCTestExpectation(description: "Took snapshot")
-      var optionalDiffable: String?
-      snapshotting.snapshot(try value()).run { b in
-        optionalDiffable = b
-        tookSnapshot.fulfill()
-      }
-      let result = XCTWaiter.wait(for: [tookSnapshot], timeout: timeout)
-      switch result {
-      case .completed:
-        break
-      case .timedOut:
+  do {
+    let tookSnapshot = XCTestExpectation(description: "Took snapshot")
+    var optionalDiffable: String?
+    snapshotting.snapshot(try value()).run { b in
+      optionalDiffable = b
+      tookSnapshot.fulfill()
+    }
+    let result = XCTWaiter.wait(for: [tookSnapshot], timeout: timeout)
+    switch result {
+    case .completed:
+      break
+    case .timedOut:
+      return """
+        Exceeded timeout of \(timeout) seconds waiting for snapshot.
+
+        This can happen when an asynchronously rendered view (like a web view) has not loaded. \
+        Ensure that every subview of the view hierarchy has loaded to avoid timeouts, or, if a \
+        timeout is unavoidable, consider setting the "timeout" parameter of "assertSnapshot" to \
+        a higher value.
+        """
+    case .incorrectOrder, .invertedFulfillment, .interrupted:
+      return "Couldn't snapshot value"
+    @unknown default:
+      return "Couldn't snapshot value"
+    }
+
+    let trimmingChars = CharacterSet.whitespacesAndNewlines.union(
+      CharacterSet(charactersIn: "\u{FEFF}"))
+    guard let diffable = optionalDiffable?.trimmingCharacters(in: trimmingChars) else {
+      return "Couldn't snapshot value"
+    }
+
+    let trimmedReference = reference.trimmingCharacters(in: .whitespacesAndNewlines)
+
+    // Always perform diff, and return early on success!
+    guard let (failure, attachments) = snapshotting.diffing.diff(trimmedReference, diffable) else {
+      return nil
+    }
+
+    // If that diff failed, we either record or fail.
+    if recording || trimmedReference.isEmpty {
+      let fileName = "\(file)"
+      let sourceCodeFilePath = URL(fileURLWithPath: fileName, isDirectory: false)
+      let sourceCode = try String(contentsOf: sourceCodeFilePath)
+      var newRecordings = recordings
+
+      let modifiedSource = try writeInlineSnapshot(
+        &newRecordings,
+        Context(
+          sourceCode: sourceCode,
+          diffable: diffable,
+          fileName: fileName,
+          lineIndex: Int(line)
+        )
+      ).sourceCode
+
+      try
+        modifiedSource
+        .data(using: String.Encoding.utf8)?
+        .write(to: sourceCodeFilePath)
+
+      if newRecordings != recordings {
+        recordings = newRecordings
+        /// If no other recording has been made, then fail!
         return """
-          Exceeded timeout of \(timeout) seconds waiting for snapshot.
-
-          This can happen when an asynchronously rendered view (like a web view) has not loaded. \
-          Ensure that every subview of the view hierarchy has loaded to avoid timeouts, or, if a \
-          timeout is unavoidable, consider setting the "timeout" parameter of "assertSnapshot" to \
-          a higher value.
-          """
-      case .incorrectOrder, .invertedFulfillment, .interrupted:
-        return "Couldn't snapshot value"
-      @unknown default:
-        return "Couldn't snapshot value"
-      }
-
-      let trimmingChars = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "\u{FEFF}"))
-      guard let diffable = optionalDiffable?.trimmingCharacters(in: trimmingChars) else {
-        return "Couldn't snapshot value"
-      }
-
-      let trimmedReference = reference.trimmingCharacters(in: .whitespacesAndNewlines)
-
-      // Always perform diff, and return early on success!
-      guard let (failure, attachments) = snapshotting.diffing.diff(trimmedReference, diffable) else {
-        return nil
-      }
-
-      // If that diff failed, we either record or fail.
-      if recording || trimmedReference.isEmpty {
-        let fileName = "\(file)"
-        let sourceCodeFilePath = URL(fileURLWithPath: fileName, isDirectory: false)
-        let sourceCode = try String(contentsOf: sourceCodeFilePath)
-        var newRecordings = recordings
-
-        let modifiedSource = try writeInlineSnapshot(
-          &newRecordings,
-          Context(
-            sourceCode: sourceCode,
-            diffable: diffable,
-            fileName: fileName,
-            lineIndex: Int(line)
-          )
-        ).sourceCode
-
-        try modifiedSource
-          .data(using: String.Encoding.utf8)?
-          .write(to: sourceCodeFilePath)
-
-        if newRecordings != recordings {
-          recordings = newRecordings
-          /// If no other recording has been made, then fail!
-          return """
           No reference was found inline. Automatically recorded snapshot.
 
           Re-run "\(sanitizePathComponent(testName))" to test against the newly-recorded snapshot.
           """
-        } else {
-          /// There is already an failure in this file,
-          /// and we don't want to write to the wrong place.
-          return nil
-        }
+      } else {
+        /// There is already an failure in this file,
+        /// and we don't want to write to the wrong place.
+        return nil
       }
+    }
 
-      /// Did not successfully record, so we will fail.
-      if !attachments.isEmpty {
-        #if !os(Linux)
+    /// Did not successfully record, so we will fail.
+    if !attachments.isEmpty {
+      #if !os(Linux)
         if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
           XCTContext.runActivity(named: "Attached Failure Diff") { activity in
             attachments.forEach {
@@ -155,18 +158,18 @@ public func _verifyInlineSnapshot<Value>(
             }
           }
         }
-        #endif
-      }
+      #endif
+    }
 
-      return """
+    return """
       Snapshot does not match reference.
 
       \(failure.trimmingCharacters(in: .whitespacesAndNewlines))
       """
 
-    } catch {
-      return error.localizedDescription
-    }
+  } catch {
+    return error.localizedDescription
+  }
 }
 
 internal typealias Recordings = [String: [FileRecording]]
@@ -197,7 +200,9 @@ internal func writeInlineSnapshot(
 
   let otherRecordings = recordings[context.fileName, default: []]
   let otherRecordingsAboveThisLine = otherRecordings.filter { $0.line < context.lineIndex }
-  let offsetStartIndex = otherRecordingsAboveThisLine.reduce(context.lineIndex) { $0 + $1.difference }
+  let offsetStartIndex = otherRecordingsAboveThisLine.reduce(context.lineIndex) {
+    $0 + $1.difference
+  }
   let functionLineIndex = offsetStartIndex - 1
   var lineCountDifference = 0
 
@@ -211,9 +216,10 @@ internal func writeInlineSnapshot(
     var functionCallLine = sourceCodeLines.remove(at: functionLineIndex)
     functionCallLine.removeLast(emptyStringLiteralWithCloseBrace.count)
     let indentText = indentation(of: functionCallLine)
-    sourceCodeLines.insert(contentsOf: [
-      functionCallLine + multiLineStringLiteralTerminator,
-      indentText + multiLineStringLiteralTerminator + ")",
+    sourceCodeLines.insert(
+      contentsOf: [
+        functionCallLine + multiLineStringLiteralTerminator,
+        indentText + multiLineStringLiteralTerminator + ")",
       ] as [String.SubSequence], at: functionLineIndex)
     lineCountDifference += 1
   }
@@ -223,15 +229,17 @@ internal func writeInlineSnapshot(
     struct InlineError: LocalizedError {
       var errorDescription: String? {
         return """
-To use inline snapshots, please convert the "with" argument to a multi-line literal.
-"""
+          To use inline snapshots, please convert the "with" argument to a multi-line literal.
+          """
       }
     }
     throw InlineError()
   }
 
   /// Find the end of multi-line literal and replace contents with recording.
-  if let multiLineLiteralEndIndex = sourceCodeLines[offsetStartIndex...].firstIndex(where: { $0.hasClosingMultilineStringDelimiter() }) {
+  if let multiLineLiteralEndIndex = sourceCodeLines[offsetStartIndex...].firstIndex(where: {
+    $0.hasClosingMultilineStringDelimiter()
+  }) {
 
     let diffableLines = context.diffable.split(separator: "\n")
 
@@ -270,7 +278,8 @@ To use inline snapshots, please convert the "with" argument to a multi-line lite
     let fileRecording = FileRecording(line: context.lineIndex, difference: lineCountDifference)
 
     /// Insert the lines
-    sourceCodeLines.replaceSubrange(offsetStartIndex..<multiLineLiteralEndIndex, with: newDiffableLines)
+    sourceCodeLines.replaceSubrange(
+      offsetStartIndex..<multiLineLiteralEndIndex, with: newDiffableLines)
 
     recordings[context.fileName, default: []].append(fileRecording)
     return context.setSourceCode(sourceCodeLines.joined(separator: "\n"))
@@ -293,21 +302,21 @@ private func indentation<S: StringProtocol>(of str: S) -> String {
   return String(repeating: " ", count: count)
 }
 
-fileprivate extension Substring {
-  mutating func replaceFirstOccurrence(of pattern: String, with newString: String) {
+extension Substring {
+  fileprivate mutating func replaceFirstOccurrence(of pattern: String, with newString: String) {
     let newString = replacingOccurrences(of: pattern, with: newString, options: .regularExpression)
     self = Substring(newString)
   }
 
-  func hasOpeningMultilineStringDelimiter() -> Bool {
+  fileprivate func hasOpeningMultilineStringDelimiter() -> Bool {
     return range(of: extendedOpeningStringDelimitersPattern, options: .regularExpression) != nil
   }
 
-  func hasClosingMultilineStringDelimiter() -> Bool {
+  fileprivate func hasClosingMultilineStringDelimiter() -> Bool {
     return range(of: extendedClosingStringDelimitersPattern, options: .regularExpression) != nil
   }
 
-  func endsInBackslash() -> Bool {
+  fileprivate func endsInBackslash() -> Bool {
     if let lastChar = last {
       return lastChar == Character(#"\"#)
     }

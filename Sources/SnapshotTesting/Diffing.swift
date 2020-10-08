@@ -26,7 +26,7 @@ public struct Diffing<Value> {
     toData: @escaping (_ value: Value) -> Data,
     fromData: @escaping (_ data: Data) -> Value,
     diff: @escaping (_ lhs: Value, _ rhs: Value) -> (String, [XCTAttachment])?
-    ) {
+  ) {
     self.toData = toData
     self.fromData = fromData
     self.diff = diff

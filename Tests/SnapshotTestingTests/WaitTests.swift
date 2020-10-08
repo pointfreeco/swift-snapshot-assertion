@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import SnapshotTesting
 
 class WaitTests: XCTestCase {
