@@ -1,4 +1,4 @@
-[   AF    !   U ] h=--- v=--- NSButton "Push Me" f=(0,0,77,32) b=(-)
-  [   A     !   U ] h=--- v=--- NSButtonBezelView f=(0,0,77,32) b=(-)
-  [   AF    !   U ] h=--- v=--- NSButtonTextField "Push Me" f=(10,6.5,57,15) b=(-)
+[   AF    !   U ] h=--- v=--- NSButton "Push Me" f=(0,0,83,32) b=(-)
+  [   A     !   U ] h=--- v=--- NSButtonBezelView f=(0,0,83,32) b=(-)
+  [   AF    !   U ] h=--- v=--- NSButtonTextField "Push Me" f=(11,7,61,15) b=(-)
 A=autoresizesSubviews, C=canDrawConcurrently, D=needsDisplay, F=flipped, G=gstate, H=hidden (h=by ancestor), L=needsLayout (l=child needsLayout), U=needsUpdateConstraints (u=child needsUpdateConstraints), O=opaque, P=preservesContentDuringLiveResize, S=scaled/rotated, W=wantsLayer (w=ancestor wantsLayer), V=needsVibrancy (v=allowsVibrancy), #=has surface
