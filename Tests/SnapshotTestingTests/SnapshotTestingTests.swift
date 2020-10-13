@@ -139,6 +139,25 @@ final class SnapshotTestingTests: XCTestCase {
     )
   }
 
+  func testCGImage() {
+    #if os(iOS) || os(tvOS) || os(macOS)
+    let image = CGImage.testImage
+
+    let osName: String
+    #if os(iOS)
+    osName = "iOS"
+    #elseif os(tvOS)
+    osName = "tvOS"
+    #elseif os(macOS)
+    osName = "macOS"
+    #endif
+
+    if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
+      assertSnapshot(matching: image, as: .image, named: osName)
+    }
+    #endif
+  }
+
   func testCGPath() {
     #if os(iOS) || os(tvOS) || os(macOS)
     let path = CGPath.heart
@@ -222,6 +241,16 @@ final class SnapshotTestingTests: XCTestCase {
     }
 
     assertSnapshot(matching: path, as: .elementsDescription, named: "macOS")
+    #endif
+  }
+
+  func testNSImage() {
+    #if os(macOS)
+    let image = NSImage.testImage
+
+    if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
+      assertSnapshot(matching: image, as: .image)
+    }
     #endif
   }
 
@@ -783,6 +812,16 @@ final class SnapshotTestingTests: XCTestCase {
 
     if #available(iOS 11.0, tvOS 11.0, *) {
       assertSnapshot(matching: path, as: .elementsDescription, named: osName)
+    }
+    #endif
+  }
+
+  func testUIImage() {
+    #if os(iOS)
+    let image = UIImage.testImage
+
+    if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
+      assertSnapshot(matching: image, as: .image)
     }
     #endif
   }

@@ -6,52 +6,55 @@ If you'd like to submit your own custom strategy, see [Contributing](../CONTRIBU
 
 ## List of Available Snapshot Strategies
 
-  - [`Any`](#any)
-      - [`.description`](#description)
-      - [`.dump`](#dump)
-  - [`CALayer`](#calayer)
-      - [`.image`](#image)
-  - [`CaseIterable`](#caseiterable)
-  - [`CGPath`](#cgpath)
-      - [`.image`](#image-1)
-      - [`.elementsDescription`](#elementsdescription)
-  - [`Data`](#data)
-      - [`.data`](#data=1)
-  - [`Encodable`](#encodable)
-      - [`.json`](#json)
-      - [`.plist`](#plist)
-  - [`NSBezierPath`](#nsbezierpath)
-      - [`.image`](#image-2)
-      - [`.elementsDescription`](#elementsdescription-1)
-  - [`NSImage`](#nsimage)
-      - [`.image`](#image-3)
-  - [`NSView`](#nsview)
-      - [`.image`](#image-4)
-      - [`.recursiveDescription`](#recursivedescription)
-  - [`NSViewController`](#nsviewcontroller)
-      - [`.image`](#image-5)
-      - [`.recursiveDescription`](#recursivedescription-1)
-  - [`SCNScene`](#scnscene)
-      - [`.image`](#image-6)
-  - [`SKScene`](#skscene)
-      - [`.image`](#image-7)
-  - [`String`](#string)
-      - [`.lines`](#lines)
-  - [`UIBezierPath`](#uibezierpath)
-      - [`.image`](#image-8)
-      - [`.elementsDescription`](#elementsdescription-2)
-  - [`UIImage`](#uiimage)
-      - [`.image`](#image-9)
-  - [`UIView`](#uiview)
-      - [`.image`](#image-10)
-      - [`.recursiveDescription`](#recursivedescription-2)
-  - [`UIViewController`](#uiviewcontroller)
-      - [`.hierarchy`](#hierarchy)
-      - [`.image`](#image-11)
-      - [`.recursiveDescription`](#recursivedescription-3)
-  - [`URLRequest`](#urlrequest)
-      - [`.curl`](#curl)
-      - [`.raw`](#raw)
+  - [Any](#any)
+    - [`.description`](#description)
+    - [`.dump`](#dump)
+  - [CALayer](#calayer)
+    - [`.image`](#image)
+  - [CaseIterable](#caseiterable)
+    - [`.func(into:)`](#funcinto)
+  - [CGImage](#cgimage)
+    - [`.image`](#image-1)
+  - [CGPath](#cgpath)
+    - [`.image`](#image-2)
+    - [`.elementsDescription`](#elementsdescription)
+  - [Data](#data)
+    - [`.data`](#data-1)
+  - [Encodable](#encodable)
+    - [`.json`](#json)
+    - [`.plist`](#plist)
+  - [NSBezierPath](#nsbezierpath)
+    - [`.image`](#image-3)
+    - [`.elementsDescription`](#elementsdescription-1)
+  - [NSImage](#nsimage)
+    - [`.image`](#image-4)
+  - [NSView](#nsview)
+    - [`.image`](#image-5)
+    - [`.recursiveDescription`](#recursivedescription)
+  - [NSViewController](#nsviewcontroller)
+    - [`.image`](#image-6)
+    - [`.recursiveDescription`](#recursivedescription-1)
+  - [SCNScene](#scnscene)
+    - [`.image`](#image-7)
+  - [SKScene](#skscene)
+    - [`.image`](#image-8)
+  - [String](#string)
+    - [`.lines`](#lines)
+  - [UIBezierPath](#uibezierpath)
+    - [`.image`](#image-9)
+    - [`.elementsDescription`](#elementsdescription-2)
+  - [UIImage](#uiimage)
+    - [`.image`](#image-10)
+  - [UIView](#uiview)
+    - [`.image`](#image-11)
+    - [`.recursiveDescription`](#recursivedescription-2)
+  - [UIViewController](#uiviewcontroller)
+    - [`.hierarchy`](#hierarchy)
+    - [`.image`](#image-12)
+    - [`.recursiveDescription`](#recursivedescription-3)
+  - [URLRequest](#urlrequest)
+    - [`.curl`](#curl)
+    - [`.raw`](#raw)
 
 ## Any
 
@@ -172,6 +175,32 @@ Records:
 "down","right"
 "left","down"
 "right","up" 
+```
+
+## CGImage
+
+**Platforms:** macOS, iOS, tvOS
+
+### `.image`
+
+A snapshot strategy for comparing images based on pixel equality.
+
+**Format:** `CGImage`
+
+#### Parameters:
+
+  - `precision: Float = 1`
+
+    The percentage of pixels that must match.
+
+#### Example:
+
+``` swift
+// Match reference as-is.
+assertSnapshot(matching: image, as: .image)
+
+// Allow for a 1% pixel difference.
+assertSnapshot(matching: image, as: .image(precision: 0.99))
 ```
 
 ## CGPath

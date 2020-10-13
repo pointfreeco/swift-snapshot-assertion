@@ -105,3 +105,42 @@ extension NSBezierPath {
   }
 }
 #endif
+
+#if os(macOS)
+extension NSImage {
+    static var testImage: NSImage {
+        let fileURL = URL(fileURLWithPath: String(#file), isDirectory: false)
+            .deletingLastPathComponent()
+            .appendingPathComponent("__Fixtures__/image.png")
+        return NSImage(contentsOf: fileURL)!
+    }
+}
+
+extension CGImage {
+    static var testImage: CGImage {
+        NSImage.testImage.cgImage(
+            forProposedRect: nil,
+            context: nil,
+            hints: nil
+        )!
+    }
+}
+#endif
+
+#if os(iOS) || os(tvOS)
+extension UIImage {
+    static var testImage: UIImage {
+        let fileURL = URL(fileURLWithPath: String(#file), isDirectory: false)
+            .deletingLastPathComponent()
+            .appendingPathComponent("__Fixtures__/image.png")
+        return UIImage(contentsOfFile: fileURL.path)!
+    }
+}
+
+extension CGImage {
+    static var testImage: CGImage {
+        UIImage.testImage.cgImage!
+    }
+}
+#endif
+
