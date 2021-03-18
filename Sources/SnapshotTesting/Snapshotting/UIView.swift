@@ -19,47 +19,82 @@ extension Snapshotting where Value == UIView, Format == UIImage {
     precision: Float = 1,
     size: CGSize? = nil,
     traits: UITraitCollection = .init()
+  )
+  -> Snapshotting {
+    return SimplySnapshotting.image(
+      precision: precision
+    ).asyncPullback(
+      Formatting.image(
+        drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        precision: precision,
+        size: size,
+        traits: traits
+      ).format
     )
-    -> Snapshotting {
+  }
+}
 
-      return SimplySnapshotting.image(precision: precision).asyncPullback { view in
-        snapshotView(
-          config: .init(safeArea: .zero, size: size ?? view.frame.size, traits: .init()),
-          drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
-          traits: traits,
-          view: view,
-          viewController: .init()
-        )
-      }
+extension Formatting where Value == UIView, Format == UIImage {
+  /// A format strategy for converting strings to strings.
+  public static func image(
+    drawHierarchyInKeyWindow: Bool = false,
+    precision: Float = 1,
+    size: CGSize? = nil,
+    traits: UITraitCollection = .init()
+    ) -> Formatting {
+    return Formatting(asyncFormat: { view in
+      snapshotView(
+        config: .init(safeArea: .zero, size: size ?? view.frame.size, traits: .init()),
+        drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        traits: traits,
+        view: view,
+        viewController: .init()
+      )
+    })
   }
 }
 
 extension Snapshotting where Value == UIView, Format == String {
   /// A snapshot strategy for comparing views based on a recursive description of their properties and hierarchies.
   public static var recursiveDescription: Snapshotting {
-    return Snapshotting.recursiveDescription()
+    return .recursiveDescription()
   }
 
   /// A snapshot strategy for comparing views based on a recursive description of their properties and hierarchies.
   public static func recursiveDescription(
     size: CGSize? = nil,
     traits: UITraitCollection = .init()
+  ) -> Snapshotting {
+    return SimplySnapshotting.lines.asyncPullback(
+      Formatting.recursiveDescription(
+        size: size,
+        traits: traits
+      ).format
     )
-    -> Snapshotting<UIView, String> {
-      return SimplySnapshotting.lines.pullback { view in
-        let dispose = prepareView(
-          config: .init(safeArea: .zero, size: size ?? view.frame.size, traits: traits),
-          drawHierarchyInKeyWindow: false,
-          traits: .init(),
-          view: view,
-          viewController: .init()
-        )
-        defer { dispose() }
-        return purgePointers(
-          view.perform(Selector(("recursiveDescription"))).retain().takeUnretainedValue()
-            as! String
-        )
-      }
   }
 }
+
+extension Formatting where Value == UIView, Format == String {
+  /// A format strategy for converting strings to strings.
+  public static func recursiveDescription(
+    size: CGSize? = nil,
+    traits: UITraitCollection = .init()
+  ) -> Formatting {
+    return Formatting(format: { view in
+      let dispose = prepareView(
+        config: .init(safeArea: .zero, size: size ?? view.frame.size, traits: traits),
+        drawHierarchyInKeyWindow: false,
+        traits: .init(),
+        view: view,
+        viewController: .init()
+      )
+      defer { dispose() }
+      return purgePointers(
+        view.perform(Selector(("recursiveDescription"))).retain().takeUnretainedValue()
+          as! String
+      )
+    })
+  }
+}
+
 #endif

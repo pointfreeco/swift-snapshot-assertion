@@ -31,4 +31,15 @@ public struct Diffing<Value> {
     self.fromData = fromData
     self.diff = diff
   }
+
+  internal init(
+    persist: Persisting<Value>,
+    diff: @escaping (_ lhs: Value, _ rhs: Value) -> (String, [XCTAttachment])?
+  ) {
+    self.init(
+      toData: persist.toData,
+      fromData: persist.fromData,
+      diff: diff
+    )
+  }
 }

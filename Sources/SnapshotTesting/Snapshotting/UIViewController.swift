@@ -19,18 +19,17 @@ extension Snapshotting where Value == UIViewController, Format == UIImage {
     precision: Float = 1,
     size: CGSize? = nil,
     traits: UITraitCollection = .init()
+  ) -> Snapshotting {
+    return Snapshotting<UIImage, UIImage>.image(
+      precision: precision
+    ).asyncPullback(
+      Formatting.image(
+        on: config,
+        precision: precision,
+        size: size,
+        traits: traits
+      ).format
     )
-    -> Snapshotting {
-
-      return SimplySnapshotting.image(precision: precision).asyncPullback { viewController in
-        snapshotView(
-          config: size.map { .init(safeArea: config.safeArea, size: $0, traits: config.traits) } ?? config,
-          drawHierarchyInKeyWindow: false,
-          traits: traits,
-          view: viewController.view,
-          viewController: viewController
-        )
-      }
   }
 
   /// A snapshot strategy for comparing view controller views based on pixel equality.
@@ -45,42 +44,67 @@ extension Snapshotting where Value == UIViewController, Format == UIImage {
     precision: Float = 1,
     size: CGSize? = nil,
     traits: UITraitCollection = .init()
+  ) -> Snapshotting {
+    return Snapshotting<UIImage, UIImage>.image(
+      precision: precision
+    ).asyncPullback(
+      Formatting.image(
+        drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        precision: precision,
+        size: size,
+        traits: traits
+      ).format
     )
-    -> Snapshotting {
+  }
+}
 
-      return SimplySnapshotting.image(precision: precision).asyncPullback { viewController in
-        snapshotView(
-          config: .init(safeArea: .zero, size: size, traits: traits),
-          drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
-          traits: .init(),
-          view: viewController.view,
-          viewController: viewController
-        )
-      }
+extension Formatting where Value == UIViewController, Format == UIImage {
+  public static func image(
+    on config: ViewImageConfig,
+    precision: Float = 1,
+    size: CGSize? = nil,
+    traits: UITraitCollection = .init()
+  ) -> Formatting {
+    return Formatting(asyncFormat: { viewController in
+      snapshotView(
+        config: size.map { .init(safeArea: config.safeArea, size: $0, traits: config.traits) } ?? config,
+        drawHierarchyInKeyWindow: false,
+        traits: traits,
+        view: viewController.view,
+        viewController: viewController
+      )
+    })
+  }
+
+  public static func image(
+    drawHierarchyInKeyWindow: Bool = false,
+    precision: Float = 1,
+    size: CGSize? = nil,
+    traits: UITraitCollection = .init()
+  ) -> Formatting {
+    return Formatting(asyncFormat: { viewController in
+      snapshotView(
+        config: .init(safeArea: .zero, size: size, traits: traits),
+        drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        traits: .init(),
+        view: viewController.view,
+        viewController: viewController
+      )
+    })
   }
 }
 
 extension Snapshotting where Value == UIViewController, Format == String {
   /// A snapshot strategy for comparing view controllers based on their embedded controller hierarchy.
   public static var hierarchy: Snapshotting {
-    return Snapshotting<String, String>.lines.pullback { viewController in
-      let dispose = prepareView(
-        config: .init(),
-        drawHierarchyInKeyWindow: false,
-        traits: .init(),
-        view: viewController.view,
-        viewController: viewController
-      )
-      defer { dispose() }
-      return purgePointers(
-        viewController.perform(Selector(("_printHierarchy"))).retain().takeUnretainedValue() as! String
-      )
-    }
+    return Snapshotting<String, String>.lines.asyncPullback(
+      Formatting.hierarchy.format
+    )
   }
 
   /// A snapshot strategy for comparing view controller views based on a recursive description of their properties and hierarchies.
   public static var recursiveDescription: Snapshotting {
-    return Snapshotting.recursiveDescription()
+    return .recursiveDescription()
   }
 
   /// A snapshot strategy for comparing view controller views based on a recursive description of their properties and hierarchies.
@@ -93,22 +117,54 @@ extension Snapshotting where Value == UIViewController, Format == String {
     on config: ViewImageConfig = .init(),
     size: CGSize? = nil,
     traits: UITraitCollection = .init()
+  ) -> Snapshotting {
+    return SimplySnapshotting.lines.asyncPullback(
+      Formatting.recursiveDescription(
+        on: config,
+        size: size,
+        traits: traits
+      ).format
     )
-    -> Snapshotting<UIViewController, String> {
-      return SimplySnapshotting.lines.pullback { viewController in
-        let dispose = prepareView(
-          config: .init(safeArea: config.safeArea, size: size ?? config.size, traits: config.traits),
-          drawHierarchyInKeyWindow: false,
-          traits: traits,
-          view: viewController.view,
-          viewController: viewController
-        )
-        defer { dispose() }
-        return purgePointers(
-          viewController.view.perform(Selector(("recursiveDescription"))).retain().takeUnretainedValue()
-            as! String
-        )
-      }
+  }
+}
+
+extension Formatting where Value == UIViewController, Format == String {
+  /// A format strategy for converting strings to strings.
+  public static var hierarchy: Formatting {
+    return Formatting(format: { viewController in
+      let dispose = prepareView(
+        config: .init(),
+        drawHierarchyInKeyWindow: false,
+        traits: .init(),
+        view: viewController.view,
+        viewController: viewController
+      )
+      defer { dispose() }
+      return purgePointers(
+        viewController.perform(Selector(("_printHierarchy"))).retain().takeUnretainedValue() as! String
+      )
+    })
+  }
+
+  public static func recursiveDescription(
+    on config: ViewImageConfig = .init(),
+    size: CGSize? = nil,
+    traits: UITraitCollection = .init()
+  ) -> Formatting {
+    return Formatting(format: { viewController in
+      let dispose = prepareView(
+        config: .init(safeArea: config.safeArea, size: size ?? config.size, traits: config.traits),
+        drawHierarchyInKeyWindow: false,
+        traits: traits,
+        view: viewController.view,
+        viewController: viewController
+      )
+      defer { dispose() }
+      return purgePointers(
+        viewController.view.perform(Selector(("recursiveDescription"))).retain().takeUnretainedValue()
+          as! String
+      )
+    })
   }
 }
 #endif

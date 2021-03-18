@@ -11,10 +11,7 @@ extension Diffing where Value == NSImage {
   /// - Parameter precision: A value between 0 and 1, where 1 means the images must match 100% of their pixels.
   /// - Returns: A new diffing strategy.
   public static func image(precision: Float) -> Diffing {
-    return .init(
-      toData: { NSImagePNGRepresentation($0)! },
-      fromData: { NSImage(data: $0)! }
-    ) { old, new in
+    return .init(persist: Persisting.image) { old, new in
       guard !compare(old, new, precision: precision) else { return nil }
       let difference = SnapshotTesting.diff(old, new)
       let message = new.size == old.size
@@ -44,6 +41,16 @@ extension Snapshotting where Value == NSImage, Format == NSImage {
     )
   }
 }
+
+extension Persisting where Value == NSImage {
+  public static var image: Persisting {
+    return Persisting(
+      toData: { NSImagePNGRepresentation($0)! },
+      fromData: { NSImage(data: $0)! }
+    )
+  }
+}
+
 
 private func NSImagePNGRepresentation(_ image: NSImage) -> Data? {
   guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return nil }

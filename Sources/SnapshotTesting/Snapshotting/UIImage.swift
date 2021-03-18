@@ -11,10 +11,7 @@ extension Diffing where Value == UIImage {
   /// - Parameter precision: A value between 0 and 1, where 1 means the images must match 100% of their pixels.
   /// - Returns: A new diffing strategy.
   public static func image(precision: Float) -> Diffing {
-    return Diffing(
-      toData: { $0.pngData() ?? emptyImage().pngData()! },
-      fromData: { UIImage(data: $0, scale: UIScreen.main.scale)! }
-    ) { old, new in
+    return Diffing(persist: Persisting.image) { old, new in
       guard !compare(old, new, precision: precision) else { return nil }
       let difference = SnapshotTesting.diff(old, new)
       let message = new.size == old.size
@@ -32,8 +29,16 @@ extension Diffing where Value == UIImage {
       )
     }
   }
-  
-  
+}
+
+extension Persisting where Value == UIImage {
+  public static var image: Persisting {
+    return Persisting(
+      toData: { $0.pngData() ?? emptyImage().pngData()! },
+      fromData: { UIImage(data: $0, scale: UIScreen.main.scale)! }
+    )
+  }
+
   /// Used when the image size has no width or no height to generated the default empty image
   private static func emptyImage() -> UIImage {
     let label = UILabel(frame: CGRect(x: 0, y: 0, width: 400, height: 80))

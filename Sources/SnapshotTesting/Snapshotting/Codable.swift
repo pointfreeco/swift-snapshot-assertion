@@ -13,9 +13,9 @@ extension Snapshotting where Value: Encodable, Format == String {
   ///
   /// - Parameter encoder: A JSON encoder.
   public static func json(_ encoder: JSONEncoder) -> Snapshotting {
-    var snapshotting = SimplySnapshotting.lines.pullback { (encodable: Value) in
-      try! String(decoding: encoder.encode(encodable), as: UTF8.self)
-    }
+    var snapshotting = SimplySnapshotting.lines.asyncPullback(
+      Formatting<Value, Format>.json(encoder: encoder).format
+    )
     snapshotting.pathExtension = "json"
     return snapshotting
   }
@@ -31,10 +31,26 @@ extension Snapshotting where Value: Encodable, Format == String {
   ///
   /// - Parameter encoder: A property list encoder.
   public static func plist(_ encoder: PropertyListEncoder) -> Snapshotting {
-    var snapshotting = SimplySnapshotting.lines.pullback { (encodable: Value) in
-      try! String(decoding: encoder.encode(encodable), as: UTF8.self)
-    }
+    var snapshotting = SimplySnapshotting.lines.asyncPullback(
+      Formatting<Value, Format>.plist(encoder: encoder).format
+    )
     snapshotting.pathExtension = "plist"
     return snapshotting
+  }
+}
+
+extension Formatting where Value: Encodable, Format == String {
+  /// A format strategy for converting encodable structures to their JSON representation.
+  public static func json(encoder: JSONEncoder) -> Formatting {
+    Self(format: { encodable in
+      try! String(decoding: encoder.encode(encodable), as: UTF8.self)
+    })
+  }
+
+  /// A format strategy for converting encodable structures to their property list representation.
+  public static func plist(encoder: PropertyListEncoder) -> Formatting {
+    Self(format: { encodable in
+      try! String(decoding: encoder.encode(encodable), as: UTF8.self)
+    })
   }
 }

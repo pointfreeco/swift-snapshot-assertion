@@ -11,7 +11,16 @@ extension Snapshotting where Value == NSBezierPath, Format == NSImage {
   ///
   /// - Parameter precision: The percentage of pixels that must match.
   public static func image(precision: Float = 1) -> Snapshotting {
-    return SimplySnapshotting.image(precision: precision).pullback { path in
+    return SimplySnapshotting.image(
+      precision: precision
+    ).asyncPullback(Formatting.image.format)
+  }
+}
+
+extension Formatting where Value == NSBezierPath, Format == NSImage {
+  /// A format strategy for converting bezier paths to images.
+  public static var image: Formatting {
+    Self(format: { path in
       // Move path info frame:
       let bounds = path.bounds
       let transform = AffineTransform(translationByX: -bounds.origin.x, byY: -bounds.origin.y)
@@ -22,7 +31,7 @@ extension Snapshotting where Value == NSBezierPath, Format == NSImage {
       path.fill()
       image.unlockFocus()
       return image
-    }
+    })
   }
 }
 
@@ -30,29 +39,39 @@ extension Snapshotting where Value == NSBezierPath, Format == String {
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
   @available(iOS 11.0, *)
   public static var elementsDescription: Snapshotting {
-    return .elementsDescription(numberFormatter: defaultNumberFormatter)
+    return .elementsDescription()
   }
 
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
   ///
   /// - Parameter numberFormatter: The number formatter used for formatting points.
   @available(iOS 11.0, *)
-  public static func elementsDescription(numberFormatter: NumberFormatter) -> Snapshotting {
-    let namesByType: [NSBezierPath.ElementType: String] = [
-      .moveTo: "MoveTo",
-      .lineTo: "LineTo",
-      .curveTo: "CurveTo",
-      .closePath: "Close",
-    ]
+  public static func elementsDescription(numberFormatter: NumberFormatter? = nil) -> Snapshotting {
+    let numberFormatter = numberFormatter ?? defaultNumberFormatter
+    return SimplySnapshotting.lines.asyncPullback { path in
+      Formatting.elementsDescription(numberFormatter: numberFormatter)(path)
+    }
+  }
+}
 
-    let numberOfPointsByType: [NSBezierPath.ElementType: Int] = [
-      .moveTo: 1,
-      .lineTo: 1,
-      .curveTo: 3,
-      .closePath: 0,
-    ]
+extension Formatting where Value == NSBezierPath, Format == String {
+  /// A format strategy for converting bezier paths to images.
+  public static func elementsDescription(numberFormatter: NumberFormatter) -> Formatting {
+    return Self(format: { path in
+      let namesByType: [NSBezierPath.ElementType: String] = [
+        .moveTo: "MoveTo",
+        .lineTo: "LineTo",
+        .curveTo: "CurveTo",
+        .closePath: "Close",
+      ]
 
-    return SimplySnapshotting.lines.pullback { path in
+      let numberOfPointsByType: [NSBezierPath.ElementType: Int] = [
+        .moveTo: 1,
+        .lineTo: 1,
+        .curveTo: 3,
+        .closePath: 0,
+      ]
+
       var string: String = ""
 
       var elementPoints = [CGPoint](repeating: .zero, count: 3)
@@ -79,7 +98,7 @@ extension Snapshotting where Value == NSBezierPath, Format == String {
       }
 
       return string
-    }
+    })
   }
 }
 

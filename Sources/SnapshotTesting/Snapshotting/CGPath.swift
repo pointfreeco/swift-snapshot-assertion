@@ -11,7 +11,21 @@ extension Snapshotting where Value == CGPath, Format == NSImage {
   ///
   /// - Parameter precision: The percentage of pixels that must match.
   public static func image(precision: Float = 1, drawingMode: CGPathDrawingMode = .eoFill) -> Snapshotting {
-    return SimplySnapshotting.image(precision: precision).pullback { path in
+    return SimplySnapshotting.image(
+      precision: precision
+    ).asyncPullback(
+      Formatting.image(
+        precision: precision,
+        drawingMode: drawingMode
+      ).format
+    )
+  }
+}
+
+extension Formatting where Value == CGPath, Format == NSImage {
+  /// A format strategy for converting paths to images.
+  public static func image(precision: Float = 1, drawingMode: CGPathDrawingMode = .eoFill) -> Formatting {
+    return Formatting(format: { path in
       let bounds = path.boundingBoxOfPath
       var transform = CGAffineTransform(translationX: -bounds.origin.x, y: -bounds.origin.y)
       let path = path.copy(using: &transform)!
@@ -24,7 +38,7 @@ extension Snapshotting where Value == CGPath, Format == NSImage {
       context.drawPath(using: drawingMode)
       image.unlockFocus()
       return image
-    }
+    })
   }
 }
 #elseif os(iOS) || os(tvOS)
@@ -40,7 +54,16 @@ extension Snapshotting where Value == CGPath, Format == UIImage {
   ///
   /// - Parameter precision: The percentage of pixels that must match.
   public static func image(precision: Float = 1, scale: CGFloat = 1, drawingMode: CGPathDrawingMode = .eoFill) -> Snapshotting {
-    return SimplySnapshotting.image(precision: precision).pullback { path in
+    return SimplySnapshotting.image(precision: precision).asyncPullback { path in
+      Formatting.image(precision: precision, scale: scale, drawingMode: drawingMode)(path)
+    }
+  }
+}
+
+extension Formatting where Value == CGPath, Format == UIImage {
+  /// A format strategy for converting paths to images.
+  public static func image(precision: Float = 1, scale: CGFloat = 1, drawingMode: CGPathDrawingMode = .eoFill) -> Formatting {
+    return Formatting(format: { path in
       let bounds = path.boundingBoxOfPath
       let format: UIGraphicsImageRendererFormat
       if #available(iOS 11.0, tvOS 11.0, *) {
@@ -54,7 +77,7 @@ extension Snapshotting where Value == CGPath, Format == UIImage {
         cgContext.addPath(path)
         cgContext.drawPath(using: drawingMode)
       }
-    }
+    })
   }
 }
 #endif
@@ -70,7 +93,20 @@ extension Snapshotting where Value == CGPath, Format == String {
   /// A snapshot strategy for comparing bezier paths based on element descriptions.
   ///
   /// - Parameter numberFormatter: The number formatter used for formatting points.
-  public static func elementsDescription(numberFormatter: NumberFormatter) -> Snapshotting {
+  public static func elementsDescription(numberFormatter: NumberFormatter? = nil) -> Snapshotting {
+    let numberFormatter = numberFormatter ?? defaultNumberFormatter
+    return SimplySnapshotting.lines.asyncPullback(
+      Formatting.elementsDescription(
+        numberFormatter: numberFormatter
+      ).format
+    )
+  }
+}
+
+@available(iOS 11.0, OSX 10.13, tvOS 11.0, *)
+extension Formatting where Value == CGPath, Format == String {
+  /// A format strategy for converting paths to images.
+  public static func elementsDescription(numberFormatter: NumberFormatter) -> Formatting {
     let namesByType: [CGPathElementType: String] = [
       .moveToPoint: "MoveTo",
       .addLineToPoint: "LineTo",
@@ -87,7 +123,7 @@ extension Snapshotting where Value == CGPath, Format == String {
       .closeSubpath: 0,
     ]
 
-    return SimplySnapshotting.lines.pullback { path in
+    return Formatting(format: { path in
       var string: String = ""
 
       path.applyWithBlock { elementPointer in
@@ -113,7 +149,7 @@ extension Snapshotting where Value == CGPath, Format == String {
       }
 
       return string
-    }
+    })
   }
 }
 

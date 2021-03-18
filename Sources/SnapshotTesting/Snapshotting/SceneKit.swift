@@ -14,7 +14,24 @@ extension Snapshotting where Value == SCNScene, Format == NSImage {
   ///   - precision: The percentage of pixels that must match.
   ///   - size: The size of the scene.
   public static func image(precision: Float = 1, size: CGSize) -> Snapshotting {
-    return .scnScene(precision: precision, size: size)
+    return Snapshotting<NSView, NSImage>.image(
+      precision: precision
+    ).asyncPullback(
+      Formatting<SCNScene, NSView>.image(
+        size: size
+      ).format
+    )
+  }
+}
+
+extension Formatting where Value == SCNScene, Format == NSView {
+  /// A format strategy for converting layers to images.
+  public static func image(size: CGSize) -> Formatting {
+    Self(format: { scene in
+        let view = SCNView(frame: .init(x: 0, y: 0, width: size.width, height: size.height))
+        view.scene = scene
+        return view
+    })
   }
 }
 #elseif os(iOS) || os(tvOS)
@@ -25,18 +42,26 @@ extension Snapshotting where Value == SCNScene, Format == UIImage {
   ///   - precision: The percentage of pixels that must match.
   ///   - size: The size of the scene.
   public static func image(precision: Float = 1, size: CGSize) -> Snapshotting {
-    return .scnScene(precision: precision, size: size)
+    return Snapshotting<UIView, UIImage>.image(
+      precision: precision
+    ).asyncPullback(
+      Formatting<SCNScene, UIView>.image(
+        size: size
+      ).format
+    )
+  }
+}
+
+extension Formatting where Value == SCNScene, Format == UIView {
+  /// A format strategy for converting layers to images.
+  public static func image(size: CGSize) -> Formatting {
+    Self(format: { scene in
+        let view = SCNView(frame: .init(x: 0, y: 0, width: size.width, height: size.height))
+        view.scene = scene
+        return view
+    })
   }
 }
 #endif
 
-fileprivate extension Snapshotting where Value == SCNScene, Format == Image {
-  static func scnScene(precision: Float, size: CGSize) -> Snapshotting {
-    return Snapshotting<View, Image>.image(precision: precision).pullback { scene in
-      let view = SCNView(frame: .init(x: 0, y: 0, width: size.width, height: size.height))
-      view.scene = scene
-      return view
-    }
-  }
-}
 #endif

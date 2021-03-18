@@ -3,7 +3,18 @@ import Foundation
 extension Snapshotting where Format == String {
   /// A snapshot strategy for comparing any structure based on a sanitized text dump.
   public static var dump: Snapshotting {
-    return SimplySnapshotting.lines.pullback { snap($0) }
+    return SimplySnapshotting.lines.asyncPullback(
+      Formatting.dump.format
+    )
+  }
+}
+
+extension Formatting where Format == String {
+  /// A format strategy for converting any structure to a sanitized text dump.
+  public static var dump: Formatting {
+    return Formatting(format: { any in
+      snap(any)
+    })
   }
 }
 

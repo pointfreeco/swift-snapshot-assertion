@@ -35,48 +35,70 @@ extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
     precision: Float = 1,
     layout: SwiftUISnapshotLayout = .sizeThatFits,
     traits: UITraitCollection = .init()
+  )
+  -> Snapshotting {
+    return SimplySnapshotting.image(
+      precision: precision
+    ).asyncPullback(
+      Formatting<Value, UIImage>.image(
+        drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        precision: precision,
+        layout: layout,
+        traits: traits
+      ).format
     )
-    -> Snapshotting {
-      let config: ViewImageConfig
+  }
+}
 
-      switch layout {
-      #if os(iOS) || os(tvOS)
-      case let .device(config: deviceConfig):
-        config = deviceConfig
-      #endif
-      case .sizeThatFits:
-        config = .init(safeArea: .zero, size: nil, traits: traits)
-      case let .fixed(width: width, height: height):
-        let size = CGSize(width: width, height: height)
-        config = .init(safeArea: .zero, size: size, traits: traits)
-      }
+@available(iOS 13.0, tvOS 13.0, *)
+extension Formatting where Value: SwiftUI.View, Format == UIImage {
+  /// A format strategy for converting strings to strings.
+  public static func image(
+    drawHierarchyInKeyWindow: Bool = false,
+    precision: Float = 1,
+    layout: SwiftUISnapshotLayout = .sizeThatFits,
+    traits: UITraitCollection = .init()
+  ) -> Formatting {
+    let config: ViewImageConfig
 
-      return SimplySnapshotting.image(precision: precision).asyncPullback { view in
-        var config = config
+    switch layout {
+    #if os(iOS) || os(tvOS)
+    case let .device(config: deviceConfig):
+      config = deviceConfig
+    #endif
+    case .sizeThatFits:
+      config = .init(safeArea: .zero, size: nil, traits: traits)
+    case let .fixed(width: width, height: height):
+      let size = CGSize(width: width, height: height)
+      config = .init(safeArea: .zero, size: size, traits: traits)
+    }
 
-        let controller: UIViewController
+    return Formatting(asyncFormat: { view in
+      var config = config
 
-        if config.size != nil {
-          controller = UIHostingController.init(
-            rootView: view
-          )
-        } else {
-          let hostingController = UIHostingController.init(rootView: view)
+      let controller: UIViewController
 
-          let maxSize = CGSize(width: 0.0, height: 0.0)
-          config.size = hostingController.sizeThatFits(in: maxSize)
-
-          controller = hostingController
-        }
-
-        return snapshotView(
-          config: config,
-          drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
-          traits: traits,
-          view: controller.view,
-          viewController: controller
+      if config.size != nil {
+        controller = UIHostingController.init(
+          rootView: view
         )
+      } else {
+        let hostingController = UIHostingController.init(rootView: view)
+
+        let maxSize = CGSize(width: 0.0, height: 0.0)
+        config.size = hostingController.sizeThatFits(in: maxSize)
+
+        controller = hostingController
       }
+
+      return snapshotView(
+        config: config,
+        drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        traits: traits,
+        view: controller.view,
+        viewController: controller
+      )
+    })
   }
 }
 #endif

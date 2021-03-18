@@ -11,7 +11,22 @@ extension Snapshotting where Value == URLRequest, Format == String {
   ///
   /// - Parameter pretty: Attempts to pretty print the body of the request (supports JSON).
   public static func raw(pretty: Bool) -> Snapshotting {
-    return SimplySnapshotting.lines.pullback { (request: URLRequest) in
+    return SimplySnapshotting.lines.asyncPullback(
+      Formatting.raw(pretty: pretty).format
+    )
+  }
+  
+  /// A snapshot strategy for comparing requests based on a cURL representation.
+  public static var curl: Snapshotting {
+    return SimplySnapshotting.lines.asyncPullback(
+      Formatting.curl.format
+    )
+  }
+}
+
+extension Formatting where Value == URLRequest, Format == String {
+  public static func raw(pretty: Bool) -> Formatting {
+    return Formatting(format: { (request: URLRequest) in
       let method = "\(request.httpMethod ?? "GET") \(request.url?.absoluteString ?? "(null)")"
 
       let headers = (request.allHTTPHeaderFields ?? [:])
@@ -37,47 +52,48 @@ extension Snapshotting where Value == URLRequest, Format == String {
       }
 
       return ([method] + headers + body).joined(separator: "\n")
-    }
+
+    })
   }
-  
-  /// A snapshot strategy for comparing requests based on a cURL representation.
-  public static let curl = SimplySnapshotting.lines.pullback { (request: URLRequest) in
 
-    var components = ["curl"]
+  public static var curl: Formatting {
+    return Formatting(format: { (request: URLRequest) in
+      var components = ["curl"]
 
-    // HTTP Method
-    let httpMethod = request.httpMethod!
-    switch httpMethod {
-    case "GET": break
-    case "HEAD": components.append("--head")
-    default: components.append("--request \(httpMethod)")
-    }
-
-    // Headers
-    if let headers = request.allHTTPHeaderFields {
-      for field in headers.keys.sorted() where field != "Cookie" {
-        let escapedValue = headers[field]!.replacingOccurrences(of: "\"", with: "\\\"")
-        components.append("--header \"\(field): \(escapedValue)\"")
+      // HTTP Method
+      let httpMethod = request.httpMethod!
+      switch httpMethod {
+      case "GET": break
+      case "HEAD": components.append("--head")
+      default: components.append("--request \(httpMethod)")
       }
-    }
 
-    // Body
-    if let httpBodyData = request.httpBody, let httpBody = String(data: httpBodyData, encoding: .utf8) {
-      var escapedBody = httpBody.replacingOccurrences(of: "\\\"", with: "\\\\\"")
-      escapedBody = escapedBody.replacingOccurrences(of: "\"", with: "\\\"")
-      
-      components.append("--data \"\(escapedBody)\"")
-    }
-    
-    // Cookies
-    if let cookie = request.allHTTPHeaderFields?["Cookie"] {
-      let escapedValue = cookie.replacingOccurrences(of: "\"", with: "\\\"")
-      components.append("--cookie \"\(escapedValue)\"")
-    }
+      // Headers
+      if let headers = request.allHTTPHeaderFields {
+        for field in headers.keys.sorted() where field != "Cookie" {
+          let escapedValue = headers[field]!.replacingOccurrences(of: "\"", with: "\\\"")
+          components.append("--header \"\(field): \(escapedValue)\"")
+        }
+      }
 
-    // URL
-    components.append("\"\(request.url!.absoluteString)\"")
+      // Body
+      if let httpBodyData = request.httpBody, let httpBody = String(data: httpBodyData, encoding: .utf8) {
+        var escapedBody = httpBody.replacingOccurrences(of: "\\\"", with: "\\\\\"")
+        escapedBody = escapedBody.replacingOccurrences(of: "\"", with: "\\\"")
 
-    return components.joined(separator: " \\\n\t")
+        components.append("--data \"\(escapedBody)\"")
+      }
+
+      // Cookies
+      if let cookie = request.allHTTPHeaderFields?["Cookie"] {
+        let escapedValue = cookie.replacingOccurrences(of: "\"", with: "\\\"")
+        components.append("--cookie \"\(escapedValue)\"")
+      }
+
+      // URL
+      components.append("\"\(request.url!.absoluteString)\"")
+
+      return components.joined(separator: " \\\n\t")
+    })
   }
 }
