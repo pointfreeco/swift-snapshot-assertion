@@ -20,7 +20,13 @@ extension Diffing where Value == UIImage {
     }
 
     return Diffing(
-      toData: { $0.pngData() ?? emptyImage().pngData()! },
+      toData: {
+        if #available(tvOSApplicationExtension 11.0, *) {
+          return $0.heicData() ?? emptyImage().heicData()!
+        } else {
+          return $0.pngData() ?? emptyImage().pngData()!
+        }
+      },
       fromData: { UIImage(data: $0, scale: imageScale)! }
     ) { old, new in
       guard !compare(old, new, precision: precision) else { return nil }
@@ -64,10 +70,21 @@ extension Snapshotting where Value == UIImage, Format == UIImage {
   /// - Parameter precision: The percentage of pixels that must match.
   /// - Parameter scale: The scale of the reference image stored on disk.
   public static func image(precision: Float, scale: CGFloat?) -> Snapshotting {
-    return .init(
-      pathExtension: "png",
-      diffing: .image(precision: precision, scale: scale)
-    )
+    let snapshotting: Snapshotting
+    
+    if #available(tvOSApplicationExtension 11.0, *) {
+      snapshotting = Snapshotting(
+        pathExtension: "heic",
+        diffing: Diffing<UIImage>.image(precision: precision, scale: scale)
+      )
+    } else {
+      snapshotting = Snapshotting(
+        pathExtension: "png",
+        diffing: Diffing<UIImage>.image(precision: precision, scale: scale)
+      )
+    }
+    
+    return snapshotting
   }
 }
 
@@ -81,7 +98,7 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float) -> Bool {
   guard newCgImage.height != 0 else { return false }
   guard oldCgImage.height == newCgImage.height else { return false }
   // Values between images may differ due to padding to multiple of 64 bytes per row,
-  // because of that a freshly taken view snapshot may differ from one stored as PNG.
+  // because of that a freshly taken view snapshot may differ from one stored as HEIC.
   // At this point we're sure that size of both images is the same, so we can go with minimal `bytesPerRow` value
   // and use it to create contexts.
   let minBytesPerRow = min(oldCgImage.bytesPerRow, newCgImage.bytesPerRow)
@@ -93,7 +110,15 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float) -> Bool {
   if let newContext = context(for: newCgImage, bytesPerRow: minBytesPerRow), let newData = newContext.data {
     if memcmp(oldData, newData, byteCount) == 0 { return true }
   }
-  let newer = UIImage(data: new.pngData()!)!
+  
+  let newer: UIImage
+  
+  if #available(tvOSApplicationExtension 11.0, *) {
+    newer = UIImage(data: new.heicData()!)!
+  } else {
+    newer = UIImage(data: new.pngData()!)!
+  }
+  
   guard let newerCgImage = newer.cgImage else { return false }
   var newerBytes = [UInt8](repeating: 0, count: byteCount)
   guard let newerContext = context(for: newerCgImage, bytesPerRow: minBytesPerRow, data: &newerBytes) else { return false }
