@@ -1,3 +1,7 @@
+import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 @testable import SnapshotTesting
 import XCTest
 
@@ -105,3 +109,48 @@ extension NSBezierPath {
   }
 }
 #endif
+
+/// `URLProtocol` subclass that allows observing requests.
+class URLProtocolStub: URLProtocol {
+
+  private static var requestObserver: ((URLRequest) -> Void)?
+  private static let anyResponse = URLResponse(url: URL(string: "www.testing.com")!,
+                                               mimeType: "",
+                                               expectedContentLength: 0,
+                                               textEncodingName: "")
+
+  /**
+   Sets the request observer closure to use when processing requests.
+
+   Once set, and after calling `startInterceptingRequests`, the given closure will be called
+   every time there is a request to process, so re-use this function whenever a new closure is needed.
+   The given closure will be removed once `stopInterceptingRequests` gets called.
+
+   - Parameter observer: The closure to call whenever there is a request to process.
+   */
+  static func observeRequests(observer: @escaping (URLRequest) -> Void) { requestObserver = observer }
+
+  /// Registers `Self` with the `URL loading system` to begin receiving requests.
+  static func startInterceptingRequests() { _ = URLProtocol.registerClass(URLProtocolStub.self) }
+
+  /// Unregisters `Self` from the `URL loading system` to stop receiving requests.
+  /// Additionally, it removes the configured request observer closure, if any.
+  static func stopInterceptingRequests() {
+    URLProtocol.unregisterClass(URLProtocolStub.self)
+    requestObserver = nil
+  }
+
+  override class func canInit(with request: URLRequest) -> Bool { true }
+
+  override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+  override func startLoading() {
+    Self.requestObserver.map { $0(request) }
+    client?.urlProtocol(self, didLoad: .init())
+    client?.urlProtocol(self, didReceive: Self.anyResponse, cacheStoragePolicy: .notAllowed)
+    client?.urlProtocolDidFinishLoading(self)
+  }
+
+  override func stopLoading() {}
+
+}

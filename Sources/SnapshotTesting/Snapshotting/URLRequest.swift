@@ -21,7 +21,7 @@ extension Snapshotting where Value == URLRequest, Format == String {
       let body: [String]
       do {
         if pretty, #available(iOS 11.0, macOS 10.13, tvOS 11.0, *) {
-          body = try request.httpBody
+          body = try request.data
             .map { try JSONSerialization.jsonObject(with: $0, options: []) }
             .map { try JSONSerialization.data(withJSONObject: $0, options: [.prettyPrinted, .sortedKeys]) }
             .map { ["\n\(String(decoding: $0, as: UTF8.self))"] }
@@ -31,7 +31,7 @@ extension Snapshotting where Value == URLRequest, Format == String {
         }
       }
       catch {
-        body = request.httpBody
+        body = request.data
           .map { ["\n\(String(decoding: $0, as: UTF8.self))"] }
           ?? []
       }
@@ -62,7 +62,7 @@ extension Snapshotting where Value == URLRequest, Format == String {
     }
 
     // Body
-    if let httpBodyData = request.httpBody, let httpBody = String(data: httpBodyData, encoding: .utf8) {
+    if let httpBodyData = request.data, let httpBody = String(data: httpBodyData, encoding: .utf8) {
       var escapedBody = httpBody.replacingOccurrences(of: "\\\"", with: "\\\\\"")
       escapedBody = escapedBody.replacingOccurrences(of: "\"", with: "\\\"")
       
@@ -80,4 +80,42 @@ extension Snapshotting where Value == URLRequest, Format == String {
 
     return components.joined(separator: " \\\n\t")
   }
+}
+
+// MARK: - URLRequest extensions
+
+private extension URLRequest {
+
+  /// Yields the data, if any, contained in the receiver, coming either from `httpBody` or `httpBodyStream`.
+  var data: Data? { httpBody ?? (httpBodyStream.map { Data(reading: $0) } ?? nil) }
+
+}
+
+// MARK: - Data extensions
+
+private extension Data {
+
+  /**
+   Consumes the specified input stream, creating a new `Data` object with its content.
+
+   - Parameter input: The input stream to read data from.
+   - Note: Closes the specified stream before ending.
+   */
+  init(reading input: InputStream, withBufferSize bufferSize: UInt = 1024) {
+    self.init()
+
+    input.open()
+    defer { input.close() }
+
+    let bufferSize = Int(bufferSize)
+    let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+    defer { buffer.deallocate() }
+
+    while input.hasBytesAvailable {
+      let read = input.read(buffer, maxLength: bufferSize)
+      guard read > 0 else { return }
+      self.append(buffer, count: read)
+    }
+  }
+
 }

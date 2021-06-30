@@ -1,0 +1,7 @@
+curl \
+	--request POST \
+	--header "Accept: text/html" \
+	--header "Content-Length: 49" \
+	--data "pricing[billing]=monthly&pricing[lane]=individual" \
+	--cookie "pf_session={\"user_id\":\"0\"}" \
+	"https://www.pointfree.co/subscribe"

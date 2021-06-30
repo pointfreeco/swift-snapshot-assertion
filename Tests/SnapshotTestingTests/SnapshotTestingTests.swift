@@ -911,34 +911,81 @@ final class SnapshotTestingTests: XCTestCase {
   }
 
   func testURLRequest() {
+    URLProtocolStub.startInterceptingRequests()
+
+    var processedRequest: URLRequest!
+    var exp: XCTestExpectation!
+    URLProtocolStub.observeRequests {
+      processedRequest = $0
+      exp.fulfill()
+    }
+
+    let session = URLSession.shared
+
     var get = URLRequest(url: URL(string: "https://www.pointfree.co/")!)
     get.addValue("pf_session={}", forHTTPHeaderField: "Cookie")
     get.addValue("text/html", forHTTPHeaderField: "Accept")
     get.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
     assertSnapshot(matching: get, as: .raw, named: "get")
     assertSnapshot(matching: get, as: .curl, named: "get-curl")
+
+    exp = expectation(description: "Wait for processed request.")
+    session.dataTask(with: get).resume()
+    wait(for: [exp], timeout: 0.1)
+
+    assertSnapshot(matching: processedRequest, as: .raw, named: "processed-get")
+    assertSnapshot(matching: processedRequest, as: .curl, named: "processed-get-curl")
 
     var post = URLRequest(url: URL(string: "https://www.pointfree.co/subscribe")!)
     post.httpMethod = "POST"
     post.addValue("pf_session={\"user_id\":\"0\"}", forHTTPHeaderField: "Cookie")
     post.addValue("text/html", forHTTPHeaderField: "Accept")
     post.httpBody = Data("pricing[billing]=monthly&pricing[lane]=individual".utf8)
+
     assertSnapshot(matching: post, as: .raw, named: "post")
     assertSnapshot(matching: post, as: .curl, named: "post-curl")
+
+    exp = expectation(description: "Wait for processed request.")
+    session.dataTask(with: post).resume()
+    wait(for: [exp], timeout: 0.1)
+
+    #if os(iOS) || os(tvOS) || os(macOS)
+    assertSnapshot(matching: processedRequest, as: .raw, named: "processed-post")
+    assertSnapshot(matching: processedRequest, as: .curl, named: "processed-post-curl")
+    #endif
     
     var postWithJSON = URLRequest(url: URL(string: "http://dummy.restapiexample.com/api/v1/create")!)
     postWithJSON.httpMethod = "POST"
     postWithJSON.addValue("application/json", forHTTPHeaderField: "Content-Type")
     postWithJSON.addValue("application/json", forHTTPHeaderField: "Accept")
     postWithJSON.httpBody = Data("{\"name\":\"tammy134235345235\", \"salary\":0, \"age\":\"tammy133\"}".utf8)
+
     assertSnapshot(matching: postWithJSON, as: .raw, named: "post-with-json")
     assertSnapshot(matching: postWithJSON, as: .curl, named: "post-with-json-curl")
+
+    exp = expectation(description: "Wait for processed request.")
+    session.dataTask(with: postWithJSON).resume()
+    wait(for: [exp], timeout: 0.1)
+
+    #if os(iOS) || os(tvOS) || os(macOS)
+    assertSnapshot(matching: processedRequest, as: .raw, named: "processed-post-with-json")
+    assertSnapshot(matching: processedRequest, as: .curl, named: "processed-post-with-json-curl")
+    #endif
 
     var head = URLRequest(url: URL(string: "https://www.pointfree.co/")!)
     head.httpMethod = "HEAD"
     head.addValue("pf_session={}", forHTTPHeaderField: "Cookie")
+
     assertSnapshot(matching: head, as: .raw, named: "head")
     assertSnapshot(matching: head, as: .curl, named: "head-curl")
+
+    exp = expectation(description: "Wait for processed request.")
+    session.dataTask(with: head).resume()
+    wait(for: [exp], timeout: 0.1)
+
+    assertSnapshot(matching: processedRequest, as: .raw, named: "processed-head")
+    assertSnapshot(matching: processedRequest, as: .curl, named: "processed-head-curl")
 
     post = URLRequest(url: URL(string: "https://www.pointfree.co/subscribe")!)
     post.httpMethod = "POST"
@@ -947,6 +994,7 @@ final class SnapshotTestingTests: XCTestCase {
     post.httpBody = Data("""
                          {"pricing": {"lane": "individual","billing": "monthly"}}
                          """.utf8)
+
     _assertInlineSnapshot(matching: post, as: .raw(pretty: true), with: """
     POST https://www.pointfree.co/subscribe
     Accept: application/json
@@ -959,6 +1007,8 @@ final class SnapshotTestingTests: XCTestCase {
       }
     }
     """)
+
+    URLProtocolStub.stopInterceptingRequests()
   }
 
   func testWebView() throws {
